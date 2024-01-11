@@ -1,29 +1,26 @@
 """Module for pygruenbeck_cloud Exceptions."""
 from __future__ import annotations
 
-from typing import Any
+
+class PyGruenbeckCloudError(Exception):
+    """Generic PyGruenbeck exception."""
 
 
-class BasePyGruenbeckCloudException(Exception):
-    """pygruenbeck_cloud Base exception."""
-
-    def __init__(self, name: str, *args: Any) -> None:
-        """Init the BasePyGruenbeckCloudException."""
-        super().__init__(*args)
-        self.name = name
+class PyGruenbeckCloudResponseError(Exception):
+    """PyGruenbeck API Response exception."""
 
 
-class PyGruenbeckCloudClientConnectionError(BasePyGruenbeckCloudException):
-    """pygruenbeck_cloud PyGruenbeckCloudClientConnectionError exception."""
-
-    def __init__(self, *args: Any) -> None:
-        """Init the PyGruenbeckCloudClientConnectionError."""
-        super().__init__("PyGruenbeckCloudClientConnectionError", *args)
+class PyGruenbeckCloudConnectionError(Exception):
+    """PyGruenbeck API Connection Error exception."""
 
 
-class PyGruenbeckCloudInvalidResponseStatus(BasePyGruenbeckCloudException):
-    """pygruenbeck_cloud PyGruenbeckCloudInvalidResponseStatus exception."""
+class PyGruenbeckCloudInvalidResponseStatus(Exception):
+    """PyGruenbeck API Incorrect response status code exception."""
 
-    def __init__(self, *args: Any) -> None:
-        """Init the PyGruenbeckCloudInvalidResponseStatus."""
-        super().__init__("PyGruenbeckCloudInvalidResponseStatus", *args)
+
+class PyGruenbeckCloudConnectionClosedError(Exception):
+    """PyGruenbeck API Connection Closed exception."""
+
+
+class PyGruenbeckCloudMissingAuthTokenError(Exception):
+    """PyGruenbeck Missing Auth Token exception."""

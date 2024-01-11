@@ -1,12 +1,10 @@
-"""Models for pygruenbeck_cloud"""
+"""Models for pygruenbeck_cloud."""
 from __future__ import annotations
 
 import keyword
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 import re
-from enum import IntEnum
-from typing import Any
 
 from pygruenbeck_cloud.const import UPDATE_INTERVAL
 
@@ -23,11 +21,14 @@ class GruenbeckAuthToken:
     tenant: str
 
     def is_expired(self) -> bool:
-        return ((datetime.now() - timedelta(seconds=UPDATE_INTERVAL)) <= self.expires_on)
+        """Return if token is expired or not."""
+        return (datetime.now() - timedelta(seconds=UPDATE_INTERVAL)) <= self.expires_on
+
 
 @dataclass
 class Device:
     """Object holding Device Information."""
+
     type: int
     has_error: bool
     id: str
@@ -40,7 +41,7 @@ class Device:
     def from_dict(data: dict) -> Device:
         """Prepare values from dict."""
         new_data = {}
-        pattern = re.compile(r"(?<!^)(?=[A-Z])") # camelCase to snake_case
+        pattern = re.compile(r"(?<!^)(?=[A-Z])")  # camelCase to snake_case
         for key, value in data.items():
             var_name = pattern.sub("_", key).lower()
             if keyword.iskeyword(var_name):
@@ -50,4 +51,3 @@ class Device:
             #     setattr(self, var_name, value)
 
         return Device(**new_data)
-

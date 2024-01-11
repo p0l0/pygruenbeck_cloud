@@ -4,7 +4,10 @@ from typing import Final
 import aiohttp
 
 USER_AGENT_APP: Final = "Gruenbeck/354 CFNetwork/1209 Darwin/20.2.0"
-USER_AGENT_WS: Final = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
+USER_AGENT_WS: Final = (
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 14_2 like Mac OS X)"
+    " AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
+)
 
 PARAM_NAME_CODE_CHALLENGE: Final = "code_challenge"
 PARAM_NAME_CSRF_TOKEN: Final = "csrf_token"
@@ -24,12 +27,14 @@ PARAM_NAME_ENDPOINT: Final = "endpoint"
 
 LOGIN_SCHEME: Final = "https"
 LOGIN_HOST: Final = "gruenbeckb2c.b2clogin.com"
-LOGIN_CODE_CHALLENGE_CHARS: Final = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+LOGIN_CODE_CHALLENGE_CHARS: Final = (
+    "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+)
 
 API_SCHEME: Final = "https"
 API_HOST: Final = "prod-eu-gruenbeck-api.azurewebsites.net"
 API_VERSION: Final = "2020-08-03"
-API_GET_MG_INFOS_ENDPOINT: Final = "" # Endpoint is empty for normal MG Infos
+API_GET_MG_INFOS_ENDPOINT: Final = ""  # Endpoint is empty for normal MG Infos
 API_GET_MG_INFOS_ENDPOINT_PARAMETERS: Final = "parameters"
 API_GET_MG_INFOS_ENDPOINT_SALT_MEASUREMENTS: Final = "measurements/salt"
 API_GET_MG_INFOS_ENDPOINT_WATER_MEASUREMENTS: Final = "measurements/water"
@@ -59,28 +64,32 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
     "login_step_1": {
         "scheme": LOGIN_SCHEME,
         "host": LOGIN_HOST,
-        "path": "/a50d35c1-202f-4da7-aa87-76e51a3098c6/b2c_1a_signinup/oauth2/v2.0/authorize",
+        "path": (
+            "/a50d35c1-202f-4da7-aa87-76e51a3098c6/b2c_1a_signinup/oauth2/v2.0/authorize"  # noqa: E501
+        ),
         "method": aiohttp.hdrs.METH_GET,
         "data": {},
         "query_params": {
-            'x-client-Ver': '0.8.0',
-            'state': 'NjkyQjZBQTgtQkM1My00ODBDLTn3MkYtOTZCQ0QyQkQ2NEE5',
-            'client_info': '1',
-            'response_type': 'code',
-            'code_challenge_method': 'S256',
-            'x-app-name': 'Grünbeck',
-            'x-client-OS': '14.3',
-            'x-app-ver': '1.2.1',
-            'scope': 'https://gruenbeckb2c.onmicrosoft.com/iot/user_impersonation openid profile offline_access',
-            'x-client-SKU': 'MSAL.iOS',
-            'code_challenge': f"{{{PARAM_NAME_CODE_CHALLENGE}}}",
-            'x-client-CPU': '64',
-            'client-request-id': 'F2929DED-2C9D-49F5-A0F4-31215427667C',
-            'redirect_uri': 'msal5a83cc16-ffb1-42e9-9859-9fbf07f36df8://auth',
-            'client_id': '5a83cc16-ffb1-42e9-9859-9fbf07f36df8',
-            'haschrome': '1',
-            'return-client-request-id': 'true',
-            'x-client-DM': 'iPhone',
+            "x-client-Ver": "0.8.0",
+            "state": "NjkyQjZBQTgtQkM1My00ODBDLTn3MkYtOTZCQ0QyQkQ2NEE5",
+            "client_info": "1",
+            "response_type": "code",
+            "code_challenge_method": "S256",
+            "x-app-name": "Grünbeck",
+            "x-client-OS": "14.3",
+            "x-app-ver": "1.2.1",
+            "scope": (
+                "https://gruenbeckb2c.onmicrosoft.com/iot/user_impersonation openid profile offline_access"  # noqa: E501
+            ),
+            "x-client-SKU": "MSAL.iOS",
+            "code_challenge": f"{{{PARAM_NAME_CODE_CHALLENGE}}}",
+            "x-client-CPU": "64",
+            "client-request-id": "F2929DED-2C9D-49F5-A0F4-31215427667C",
+            "redirect_uri": "msal5a83cc16-ffb1-42e9-9859-9fbf07f36df8://auth",
+            "client_id": "5a83cc16-ffb1-42e9-9859-9fbf07f36df8",
+            "haschrome": "1",
+            "return-client-request-id": "true",
+            "x-client-DM": "iPhone",
         },
         "headers": {
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -139,7 +148,9 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
         "method": aiohttp.hdrs.METH_POST,
         "data": {
             "client_info": "1",
-            "scope": "https://gruenbeckb2c.onmicrosoft.com/iot/user_impersonation openid profile offline_access",
+            "scope": (
+                "https://gruenbeckb2c.onmicrosoft.com/iot/user_impersonation openid profile offline_access"  # noqa: E501
+            ),
             "code": f"{{{PARAM_NAME_CODE}}}",
             "grant_type": "authorization_code",
             "code_verifier": f"{{{PARAM_NAME_CODE_VERIFIER}}}",
@@ -171,7 +182,9 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
         "method": aiohttp.hdrs.METH_POST,
         "data": {
             "client_info": "1",
-            "scope": "https://gruenbeckb2c.onmicrosoft.com/iot/user_impersonation openid profile offline_access",
+            "scope": (
+                "https://gruenbeckb2c.onmicrosoft.com/iot/user_impersonation openid profile offline_access"  # noqa: E501
+            ),
             "grant_type": "refresh_token",
             "refresh_token": f"{{{PARAM_NAME_REFRESH_TOKEN}}}",
             "client_id": "5a83cc16-ffb1-42e9-9859-9fbf07f36df8",
@@ -193,7 +206,6 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
             "return-client-request-id": "true",
             "cache-control": "no-cache",
         },
-
     },
     "start_ws_negotiation": {
         "scheme": API_SCHEME,
@@ -219,9 +231,7 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
         "path": "/client/negotiate",
         "method": aiohttp.hdrs.METH_POST,
         "data": {},
-        "query_params": {
-            "hub": "gruenbeck"
-        },
+        "query_params": {"hub": "gruenbeck"},
         "headers": {
             "Content-Type": "text/plain;charset=UTF-8",
             "Origin": "file://",
@@ -319,7 +329,6 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
             "Authorization": f"Bearer {{{PARAM_NAME_ACCESS_TOKEN}}}",
         },
     },
-
     "placeholder": {
         "scheme": LOGIN_SCHEME,
         "host": LOGIN_HOST,

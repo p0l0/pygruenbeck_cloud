@@ -1,5 +1,5 @@
 """Constants for the Gruenbeck Cloud integration."""
-from typing import Final
+from typing import Any, Final
 
 import aiohttp
 
@@ -60,7 +60,7 @@ API_WS_CLIENT_HEADER: dict[str, str] = {
 API_WS_INITIAL_MESSAGE: Final = '{"protocol":"json","version":1}'
 
 
-WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
+WEB_REQUESTS: dict[str, dict[str, Any]] = {
     "login_step_1": {
         "scheme": LOGIN_SCHEME,
         "host": LOGIN_HOST,
@@ -68,6 +68,7 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
             "/a50d35c1-202f-4da7-aa87-76e51a3098c6/b2c_1a_signinup/oauth2/v2.0/authorize"  # noqa: E501
         ),
         "method": aiohttp.hdrs.METH_GET,
+        "use_cookies": True,
         "data": {},
         "query_params": {
             "x-client-Ver": "0.8.0",
@@ -104,6 +105,7 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
         "host": LOGIN_HOST,
         "path": f"{{{PARAM_NAME_TENANT}}}/SelfAsserted",
         "method": aiohttp.hdrs.METH_POST,
+        "use_cookies": True,
         "data": {
             "request_type": "RESPONSE",
             "signInName": f"{{{PARAM_NAME_USERNAME}}}",
@@ -127,6 +129,7 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
         "host": LOGIN_HOST,
         "path": f"{{{PARAM_NAME_TENANT}}}/api/CombinedSigninAndSignup/confirmed",
         "method": aiohttp.hdrs.METH_GET,
+        "use_cookies": True,
         "data": {},
         "query_params": {
             "csrf_token": f"{{{PARAM_NAME_CSRF_TOKEN}}}",
@@ -146,6 +149,7 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
         "host": LOGIN_HOST,
         "path": f"{{{PARAM_NAME_TENANT}}}/oauth2/v2.0/token",
         "method": aiohttp.hdrs.METH_POST,
+        "use_cookies": True,
         "data": {
             "client_info": "1",
             "scope": (
@@ -180,6 +184,7 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
         "host": LOGIN_HOST,
         "path": f"{{{PARAM_NAME_TENANT}}}/oauth2/v2.0/token",
         "method": aiohttp.hdrs.METH_POST,
+        "use_cookies": False,
         "data": {
             "client_info": "1",
             "scope": (
@@ -212,6 +217,7 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
         "host": API_HOST,
         "path": "/api/realtime/negotiate",
         "method": aiohttp.hdrs.METH_GET,
+        "use_cookies": False,
         "data": {},
         "query_params": {},
         "headers": {
@@ -230,6 +236,7 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
         "host": API_WS_HOST,
         "path": "/client/negotiate",
         "method": aiohttp.hdrs.METH_POST,
+        "use_cookies": False,
         "data": {},
         "query_params": {"hub": "gruenbeck"},
         "headers": {
@@ -247,6 +254,7 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
         "host": API_HOST,
         "path": "/api/devices",
         "method": aiohttp.hdrs.METH_GET,
+        "use_cookies": False,
         "data": {},
         "query_params": {
             "api-version": API_VERSION,
@@ -265,6 +273,7 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
         "host": API_HOST,
         "path": f"/api/devices/{{{PARAM_NAME_DEVICE_ID}}}/{{{PARAM_NAME_ENDPOINT}}}",
         "method": aiohttp.hdrs.METH_GET,
+        "use_cookies": False,
         "data": {},
         "query_params": {
             "api-version": API_VERSION,
@@ -283,6 +292,7 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
         "host": API_HOST,
         "path": f"/api/devices/{{{PARAM_NAME_DEVICE_ID}}}/realtime/enter",
         "method": aiohttp.hdrs.METH_POST,
+        "use_cookies": False,
         "data": {},
         "query_params": {
             "api-version": API_VERSION,
@@ -300,6 +310,7 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
         "host": API_HOST,
         "path": f"/api/devices/{{{PARAM_NAME_DEVICE_ID}}}/realtime/refresh",
         "method": aiohttp.hdrs.METH_POST,
+        "use_cookies": False,
         "data": {},
         "query_params": {
             "api-version": API_VERSION,
@@ -317,6 +328,7 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
         "host": API_HOST,
         "path": f"/api/devices/{{{PARAM_NAME_DEVICE_ID}}}/realtime/leave",
         "method": aiohttp.hdrs.METH_POST,
+        "use_cookies": False,
         "data": {},
         "query_params": {
             "api-version": API_VERSION,
@@ -334,6 +346,7 @@ WEB_REQUESTS: dict[str, dict[str, str | dict[str, str]]] = {
         "host": LOGIN_HOST,
         "path": "/path",
         "method": aiohttp.hdrs.METH_GET,
+        "use_cookies": False,
         "data": {},
         "query_params": {},
         "headers": {},

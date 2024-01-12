@@ -1,2 +1,5 @@
+Version 0.0.2 (2024-01-12)
+- Adapted implementation for Home Assistant integration
+
 Version 0.0.1 (2024-01-08)
 - Initial implementation

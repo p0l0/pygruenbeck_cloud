@@ -2,70 +2,65 @@
 from __future__ import annotations
 
 import base64
+from collections.abc import Callable
+from datetime import datetime
 import hashlib
 import json
 import logging
 import random
 import socket
-from datetime import datetime
 from types import TracebackType
 from typing import Any
 
 import aiohttp
 from aiohttp import (
+    ClientConnectionError,
+    ClientConnectorError,
     ClientSession,
     ClientTimeout,
-    CookieJar,
     ClientWebSocketResponse,
     ContentTypeError,
-    ClientConnectorError,
+    CookieJar,
     ServerDisconnectedError,
-    WSServerHandshakeError,
-    ClientConnectionError,
     WSMsgType,
+    WSServerHandshakeError,
 )
 from aiohttp.typedefs import StrOrURL
 from yarl import URL
 
-from collections.abc import Callable
-
 from .const import (
-    API_WS_HOST,
-    API_WS_CLIENT_URL,
-    API_WS_CLIENT_QUERY,
-    LOGIN_CODE_CHALLENGE_CHARS,
-    PARAM_NAME_CODE_CHALLENGE,
-    HTTP_REQUEST_TIMEOUT,
-    PARAM_NAME_CSRF_TOKEN,
-    PARAM_NAME_TENANT,
-    PARAM_NAME_TRANS_ID,
-    PARAM_NAME_POLICY,
-    PARAM_NAME_USERNAME,
-    PARAM_NAME_PASSWORD,
-    PARAM_NAME_CODE,
-    PARAM_NAME_CODE_VERIFIER,
-    WEB_REQUESTS,
-    PARAM_NAME_REFRESH_TOKEN,
-    PARAM_NAME_ACCESS_TOKEN,
-    API_WS_SCHEME_WS,
-    PARAM_NAME_CONNECTION_ID,
     API_WS_CLIENT_HEADER,
+    API_WS_CLIENT_QUERY,
+    API_WS_CLIENT_URL,
+    API_WS_HOST,
     API_WS_INITIAL_MESSAGE,
-    WS_REQUEST_TIMEOUT,
+    API_WS_SCHEME_WS,
+    HTTP_REQUEST_TIMEOUT,
+    LOGIN_CODE_CHALLENGE_CHARS,
+    PARAM_NAME_ACCESS_TOKEN,
+    PARAM_NAME_CODE,
+    PARAM_NAME_CODE_CHALLENGE,
+    PARAM_NAME_CODE_VERIFIER,
+    PARAM_NAME_CONNECTION_ID,
+    PARAM_NAME_CSRF_TOKEN,
     PARAM_NAME_DEVICE_ID,
     PARAM_NAME_ENDPOINT,
-    API_GET_MG_INFOS_ENDPOINT,
-    API_GET_MG_INFOS_ENDPOINT_PARAMETERS,
-    API_GET_MG_INFOS_ENDPOINT_SALT_MEASUREMENTS,
-    API_GET_MG_INFOS_ENDPOINT_WATER_MEASUREMENTS,
+    PARAM_NAME_PASSWORD,
+    PARAM_NAME_POLICY,
+    PARAM_NAME_REFRESH_TOKEN,
+    PARAM_NAME_TENANT,
+    PARAM_NAME_TRANS_ID,
+    PARAM_NAME_USERNAME,
+    WEB_REQUESTS,
+    WS_REQUEST_TIMEOUT,
 )
 from .exceptions import (
-    PyGruenbeckCloudConnectionError,
-    PyGruenbeckCloudResponseError,
     PyGruenbeckCloudConnectionClosedError,
+    PyGruenbeckCloudConnectionError,
     PyGruenbeckCloudMissingAuthTokenError,
+    PyGruenbeckCloudResponseError,
 )
-from .models import GruenbeckAuthToken, Device
+from .models import Device, GruenbeckAuthToken
 
 # logging.basicConfig(level=logging.INFO)
 logging.basicConfig(
@@ -138,21 +133,19 @@ class PyGruenbeckCloud:
 
         return [result, challenge_hash]
 
-    async def login(self) -> None:
+    async def login(self) -> bool:
         """Login to Grünbeck Cloud."""
         code_verifier, code_challenge = await self._get_code_challenge()
 
-        step1_values = await self._login_step1(code_challenge)
-        _LOGGER.info(step1_values)
+        auth_data = await self._login_step1(code_challenge)
 
-        step2_result = await self._login_step2(step1_values)
-        if not step2_result:
+        if not await self._login_step2(auth_data):
             _LOGGER.error("Error trying to log in!")
-            return
+            return False
 
-        code = await self._login_step3(step1_values)
+        code = await self._login_step3(auth_data)
 
-        response = await self._login_step4(step1_values, code, code_verifier)
+        response = await self._login_step4(auth_data, code, code_verifier)
 
         self._auth_token = GruenbeckAuthToken(
             access_token=response["access_token"],
@@ -160,8 +153,10 @@ class PyGruenbeckCloud:
             not_before=datetime.fromtimestamp(response["not_before"]),
             expires_on=datetime.fromtimestamp(response["expires_on"]),
             expires_in=response["expires_in"],
-            tenant=step1_values["tenant"],
+            tenant=auth_data["tenant"],
         )
+
+        return True
 
     async def _login_step1(self, code_challenge: str) -> dict[str, str]:
         scheme = WEB_REQUESTS["login_step_1"]["scheme"]
@@ -200,18 +195,18 @@ class PyGruenbeckCloud:
             ),
         }
 
-    async def _login_step2(self, step1_values: dict[str, str]) -> bool:
+    async def _login_step2(self, auth_data: dict[str, str]) -> bool:
         scheme = WEB_REQUESTS["login_step_2"]["scheme"]
         host = WEB_REQUESTS["login_step_2"]["host"]
 
         headers = self._placeholder_to_values_dict(
             WEB_REQUESTS["login_step_2"]["headers"],  # type: ignore[arg-type]
-            {PARAM_NAME_CSRF_TOKEN: step1_values["csrf_token"]},
+            {PARAM_NAME_CSRF_TOKEN: auth_data["csrf_token"]},
         )
 
         path = self._placeholder_to_values_str(
             WEB_REQUESTS["login_step_2"]["path"],  # type: ignore[arg-type]
-            {PARAM_NAME_TENANT: step1_values["tenant"]},
+            {PARAM_NAME_TENANT: auth_data["tenant"]},
         )
 
         data = self._placeholder_to_values_dict(
@@ -222,13 +217,13 @@ class PyGruenbeckCloud:
             },
         )
 
-        method = WEB_REQUESTS["login_step_1"]["method"]
+        method = WEB_REQUESTS["login_step_2"]["method"]
 
         query = self._placeholder_to_values_dict(
             WEB_REQUESTS["login_step_2"]["query_params"],  # type: ignore[arg-type]
             {
-                PARAM_NAME_TRANS_ID: step1_values["transId"],
-                PARAM_NAME_POLICY: step1_values["policy"],
+                PARAM_NAME_TRANS_ID: auth_data["transId"],
+                PARAM_NAME_POLICY: auth_data["policy"],
             },
         )
 
@@ -241,22 +236,25 @@ class PyGruenbeckCloud:
             parsed_response = {}
             if isinstance(response, str):
                 parsed_response = json.loads(response)
-            else:
+            elif isinstance(response, dict):
                 parsed_response = response
+            else:
+                msg = f"Incorrect response from {url}"
+                raise PyGruenbeckCloudResponseError(msg)
 
             if parsed_response["status"] == "200":
                 return True
 
         return False
 
-    async def _login_step3(self, step1_values: dict[str, str]) -> str:
+    async def _login_step3(self, auth_data: dict[str, str]) -> str:
         scheme = WEB_REQUESTS["login_step_3"]["scheme"]
         host = WEB_REQUESTS["login_step_3"]["host"]
 
         headers = WEB_REQUESTS["login_step_3"]["headers"]
         path = self._placeholder_to_values_str(
             WEB_REQUESTS["login_step_3"]["path"],  # type: ignore[arg-type]
-            {PARAM_NAME_TENANT: step1_values["tenant"]},
+            {PARAM_NAME_TENANT: auth_data["tenant"]},
         )
         method = WEB_REQUESTS["login_step_3"]["method"]
         data = WEB_REQUESTS["login_step_3"]["data"]
@@ -264,9 +262,9 @@ class PyGruenbeckCloud:
         query = self._placeholder_to_values_dict(
             WEB_REQUESTS["login_step_3"]["query_params"],  # type: ignore[arg-type]
             {
-                PARAM_NAME_CSRF_TOKEN: step1_values["csrf_token"],
-                PARAM_NAME_TRANS_ID: step1_values["transId"],
-                PARAM_NAME_POLICY: step1_values["policy"],
+                PARAM_NAME_CSRF_TOKEN: auth_data["csrf_token"],
+                PARAM_NAME_TRANS_ID: auth_data["transId"],
+                PARAM_NAME_POLICY: auth_data["policy"],
             },
         )
 
@@ -290,7 +288,7 @@ class PyGruenbeckCloud:
         return response[start:end]
 
     async def _login_step4(
-        self, step1_values: dict[str, str], code: str, code_verifier: str
+        self, auth_data: dict[str, str], code: str, code_verifier: str
     ) -> dict[str, Any]:
         scheme = WEB_REQUESTS["login_step_4"]["scheme"]
         host = WEB_REQUESTS["login_step_4"]["host"]
@@ -298,7 +296,7 @@ class PyGruenbeckCloud:
         headers = WEB_REQUESTS["login_step_4"]["headers"]
         path = self._placeholder_to_values_str(
             WEB_REQUESTS["login_step_4"]["path"],  # type: ignore[arg-type]
-            {PARAM_NAME_TENANT: step1_values["tenant"]},
+            {PARAM_NAME_TENANT: auth_data["tenant"]},
         )
         method = WEB_REQUESTS["login_step_4"]["method"]
         data = self._placeholder_to_values_dict(
@@ -318,127 +316,46 @@ class PyGruenbeckCloud:
 
         return response
 
-    async def _http_request(
-        self,
-        headers: dict,
-        url: StrOrURL,
-        data: Any = None,
-        expected_status_code: int = aiohttp.http.HTTPStatus.OK,
-        method: str = aiohttp.hdrs.METH_GET,
-        allow_redirects: bool = False,
-    ) -> str | dict[Any, Any]:
-        """Execute HTTP request."""
-        if self._session is None:
-            self._session = ClientSession(
-                timeout=ClientTimeout(total=HTTP_REQUEST_TIMEOUT),
-                cookie_jar=CookieJar(),
-            )
+    async def _refresh_web_token(self) -> bool:
+        """Refresh Web Access Token."""
+        if not isinstance(self._auth_token, GruenbeckAuthToken):
+            msg = "Cannot refresh, missing Auth Token."
+            raise PyGruenbeckCloudMissingAuthTokenError(msg)
 
-        try:
-            _LOGGER.debug("Requesting URL %s with method %s", url, method)
-            async with self._session.request(
-                method=method,
-                url=url,
-                headers=headers,
-                allow_redirects=allow_redirects,
-                data=data,
-            ) as resp:
-                if resp.status != expected_status_code:
-                    error = (
-                        f"Response status code for {url} is {resp.status},"
-                        f" we expected {expected_status_code}."
-                    )
-                    _LOGGER.error(error)
-                    raise PyGruenbeckCloudResponseError(error)
-                try:
-                    response = await resp.json()
-                except ContentTypeError:
-                    response = await resp.text()
+        scheme = WEB_REQUESTS["web_token_refresh"]["scheme"]
+        host = WEB_REQUESTS["web_token_refresh"]["host"]
 
-                _LOGGER.debug(
-                    "Response from URL %s with status %d was %s",
-                    url,
-                    resp.status,
-                    response,
-                )
-
-                if not isinstance(response, str) and not isinstance(response, dict):
-                    msg = f"Response from URL {url} has incorrect type {type(response)}"
-                    raise PyGruenbeckCloudResponseError(msg)
-
-                return response
-        except (ClientConnectorError, ServerDisconnectedError) as ex:
-            _LOGGER.error("%s", ex)
-            raise PyGruenbeckCloudConnectionError(ex) from ex
-
-    @property
-    def connected(self) -> bool:
-        """Return if we are connected to WebSocket."""
-        return self._ws_client is not None and not self._ws_client.closed
-
-    async def connect(self) -> None:
-        """Connect to the WebSocket."""
-        if self.connected:
-            return
-
-        ws_access_token, ws_connection_id = await self._get_ws_tokens()
-
-        query = self._placeholder_to_values_dict(
-            API_WS_CLIENT_QUERY,
+        headers = WEB_REQUESTS["web_token_refresh"]["headers"]
+        path = self._placeholder_to_values_str(
+            WEB_REQUESTS["web_token_refresh"]["path"],  # type: ignore[arg-type]
+            {PARAM_NAME_TENANT: self._auth_token.tenant},
+        )
+        method = WEB_REQUESTS["web_token_refresh"]["method"]
+        data = self._placeholder_to_values_dict(
+            WEB_REQUESTS["web_token_refresh"]["data"],  # type: ignore[arg-type]
             {
-                PARAM_NAME_CONNECTION_ID: ws_connection_id,
-                PARAM_NAME_ACCESS_TOKEN: ws_access_token,
+                PARAM_NAME_REFRESH_TOKEN: self._auth_token.refresh_token,
             },
         )
-        url = URL.build(
-            scheme=API_WS_SCHEME_WS,
-            host=API_WS_HOST,
-            path=API_WS_CLIENT_URL,
-            query=query,
+        query = WEB_REQUESTS["web_token_refresh"]["query_params"]
+
+        url = URL.build(scheme=scheme, host=host, path=path, query=query)  # type: ignore[arg-type]  # noqa: E501
+        response = await self._http_request(
+            url=url, headers=headers, method=method, data=data  # type: ignore[arg-type]
         )
+        if not isinstance(response, dict):
+            msg = f"Incorrect response from {url}"
+            raise PyGruenbeckCloudResponseError(msg)
 
-        if self._ws_session is None:
-            self._ws_session = ClientSession(
-                timeout=ClientTimeout(total=WS_REQUEST_TIMEOUT)
-            )
+        # @TODO - Check response if token is expired!
 
-        try:
-            self._ws_client = await self._ws_session.ws_connect(
-                url=url, headers=API_WS_CLIENT_HEADER, heartbeat=30
-            )
-            await self._ws_client.send_str(API_WS_INITIAL_MESSAGE)
-        except (
-            WSServerHandshakeError,
-            ClientConnectionError,
-            socket.gaierror,
-        ) as ex:
-            raise PyGruenbeckCloudConnectionError(ex) from ex
+        self._auth_token.access_token = response["access_token"]
+        self._auth_token.refresh_token = response["refresh_token"]
+        self._auth_token.not_before = datetime.fromtimestamp(response["not_before"])
+        self._auth_token.expires_on = datetime.fromtimestamp(response["expires_on"])
+        self._auth_token.expires_in = response["expires_in"]
 
-    async def listen(self, callback: Callable[[str], None]) -> None:
-        """Listen for WebSocket messages."""
-        if not self._ws_client or not self.connected:
-            msg = "We are not connected to WebSocket"
-            raise PyGruenbeckCloudConnectionError(msg)
-
-        while not self._ws_client.closed:
-            ws_msg = await self._ws_client.receive()
-            _LOGGER.debug("WebSocket Message received: %s", ws_msg.data)
-
-            if ws_msg.type == WSMsgType.ERROR:
-                raise PyGruenbeckCloudConnectionError(self._ws_client.exception())
-
-            if ws_msg.type == WSMsgType.TEXT:
-                # There is a "%1E = Record Separator" char at the end of the string!
-                response = json.loads(ws_msg.data.strip())
-                callback(response)
-
-            if ws_msg.type == WSMsgType.BINARY:
-                msg = "WebSocket response is binary type"
-                raise PyGruenbeckCloudResponseError(msg)
-
-            if ws_msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSED, WSMsgType.CLOSING):
-                msg = "WebSocket connection has been closed"
-                raise PyGruenbeckCloudConnectionClosedError(msg)
+        return True
 
     async def get_devices(self) -> list[Device]:
         """Get Devices from Cloud."""
@@ -465,7 +382,7 @@ class PyGruenbeckCloud:
             url=url, headers=headers, method=method, data=data  # type: ignore[arg-type]
         )
 
-        if not isinstance(response, dict):
+        if not isinstance(response, list):
             msg = f"Incorrect response from {url}"
             raise PyGruenbeckCloudResponseError(msg)
 
@@ -475,23 +392,23 @@ class PyGruenbeckCloud:
 
         return devices
 
-    async def get_mg_infos(self, device: Device):
-        data = await self._get_mg_infos_request(device, API_GET_MG_INFOS_ENDPOINT)
-
-    async def get_mg_infos_parameters(self, device: Device):
-        data = await self._get_mg_infos_request(
-            device, API_GET_MG_INFOS_ENDPOINT_PARAMETERS
-        )
-
-    async def get_mg_infos_salt_measurements(self, device: Device):
-        data = await self._get_mg_infos_request(
-            device, API_GET_MG_INFOS_ENDPOINT_SALT_MEASUREMENTS
-        )
-
-    async def get_mg_infos_water_measurements(self, device: Device):
-        data = await self._get_mg_infos_request(
-            device, API_GET_MG_INFOS_ENDPOINT_WATER_MEASUREMENTS
-        )
+    # async def get_mg_infos(self, device: Device):
+    #     data = await self._get_mg_infos_request(device, API_GET_MG_INFOS_ENDPOINT)
+    #
+    # async def get_mg_infos_parameters(self, device: Device):
+    #     data = await self._get_mg_infos_request(
+    #         device, API_GET_MG_INFOS_ENDPOINT_PARAMETERS
+    #     )
+    #
+    # async def get_mg_infos_salt_measurements(self, device: Device):
+    #     data = await self._get_mg_infos_request(
+    #         device, API_GET_MG_INFOS_ENDPOINT_SALT_MEASUREMENTS
+    #     )
+    #
+    # async def get_mg_infos_water_measurements(self, device: Device):
+    #     data = await self._get_mg_infos_request(
+    #         device, API_GET_MG_INFOS_ENDPOINT_WATER_MEASUREMENTS
+    #     )
 
     async def _get_mg_infos_request(
         self, device: Device, endpoint: str = ""
@@ -622,6 +539,133 @@ class PyGruenbeckCloud:
             expected_status_code=202,
         )
 
+    async def _http_request(
+        self,
+        headers: dict,
+        url: StrOrURL,
+        data: Any = None,
+        expected_status_code: int = aiohttp.http.HTTPStatus.OK,
+        method: str = aiohttp.hdrs.METH_GET,
+        allow_redirects: bool = False,
+    ) -> str | dict[Any, Any] | list[Any]:
+        """Execute HTTP request."""
+        if self._session is None:
+            self._session = ClientSession(
+                timeout=ClientTimeout(total=HTTP_REQUEST_TIMEOUT),
+                cookie_jar=CookieJar(),
+            )
+
+        try:
+            _LOGGER.debug("Requesting URL %s with method %s", url, method)
+            async with self._session.request(
+                method=method,
+                url=url,
+                headers=headers,
+                allow_redirects=allow_redirects,
+                data=data,
+            ) as resp:
+                if resp.status != expected_status_code:
+                    error = (
+                        f"Response status code for {url} is {resp.status},"
+                        f" we expected {expected_status_code}."
+                    )
+                    _LOGGER.error(error)
+                    raise PyGruenbeckCloudResponseError(error)
+                try:
+                    response = await resp.json()
+                except ContentTypeError:
+                    response = await resp.text()
+
+                _LOGGER.debug(
+                    "Response from URL %s with status %d was %s",
+                    url,
+                    resp.status,
+                    response,
+                )
+
+                if (
+                    not isinstance(response, str)
+                    and not isinstance(response, dict)
+                    and not isinstance(response, list)
+                ):
+                    msg = f"Response from URL {url} has incorrect type {type(response)}"
+                    raise PyGruenbeckCloudResponseError(msg)
+
+                return response
+        except (ClientConnectorError, ServerDisconnectedError) as ex:
+            _LOGGER.error("%s", ex)
+            raise PyGruenbeckCloudConnectionError(ex) from ex
+
+    @property
+    def connected(self) -> bool:
+        """Return if we are connected to WebSocket."""
+        return self._ws_client is not None and not self._ws_client.closed
+
+    async def connect(self) -> None:
+        """Connect to the WebSocket."""
+        if self.connected:
+            return
+
+        ws_access_token, ws_connection_id = await self._get_ws_tokens()
+
+        query = self._placeholder_to_values_dict(
+            API_WS_CLIENT_QUERY,
+            {
+                PARAM_NAME_CONNECTION_ID: ws_connection_id,
+                PARAM_NAME_ACCESS_TOKEN: ws_access_token,
+            },
+        )
+        url = URL.build(
+            scheme=API_WS_SCHEME_WS,
+            host=API_WS_HOST,
+            path=API_WS_CLIENT_URL,
+            query=query,
+        )
+
+        if self._ws_session is None:
+            self._ws_session = ClientSession(
+                timeout=ClientTimeout(total=WS_REQUEST_TIMEOUT)
+            )
+
+        try:
+            self._ws_client = await self._ws_session.ws_connect(
+                url=url, headers=API_WS_CLIENT_HEADER, heartbeat=30
+            )
+            # Send initial Message
+            await self._ws_client.send_str(API_WS_INITIAL_MESSAGE)
+        except (
+            WSServerHandshakeError,
+            ClientConnectionError,
+            socket.gaierror,
+        ) as ex:
+            raise PyGruenbeckCloudConnectionError(ex) from ex
+
+    async def listen(self, callback: Callable[[str], None]) -> None:
+        """Listen for WebSocket messages."""
+        if not self._ws_client or not self.connected:
+            msg = "We are not connected to WebSocket"
+            raise PyGruenbeckCloudConnectionError(msg)
+
+        while not self._ws_client.closed:
+            ws_msg = await self._ws_client.receive()
+            _LOGGER.debug("WebSocket Message received: %s", ws_msg.data)
+
+            if ws_msg.type == WSMsgType.ERROR:
+                raise PyGruenbeckCloudConnectionError(self._ws_client.exception())
+
+            if ws_msg.type == WSMsgType.TEXT:
+                # There is a "%1E = Record Separator" char at the end of the string!
+                response = json.loads(ws_msg.data.strip())
+                callback(response)
+
+            if ws_msg.type == WSMsgType.BINARY:
+                msg = "WebSocket response is binary type"
+                raise PyGruenbeckCloudResponseError(msg)
+
+            if ws_msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSED, WSMsgType.CLOSING):
+                msg = "WebSocket connection has been closed"
+                raise PyGruenbeckCloudConnectionClosedError(msg)
+
     async def disconnect(self) -> None:
         """Close open connections."""
         if not self._ws_session or not self.connected:
@@ -643,6 +687,7 @@ class PyGruenbeckCloud:
         return [ws_access_token, ws_connection_id]
 
     async def _start_ws_negotiation(self, access_token: str) -> list[str]:
+        """Start WebSocket connection negotiation."""
         scheme = WEB_REQUESTS["start_ws_negotiation"]["scheme"]
         host = WEB_REQUESTS["start_ws_negotiation"]["host"]
 
@@ -668,6 +713,7 @@ class PyGruenbeckCloud:
         return [response["url"], response["accessToken"]]
 
     async def _get_ws_connection_id(self, ws_access_token: str) -> str:
+        """Get WebSocket Connection ID."""
         scheme = WEB_REQUESTS["get_ws_connection_id"]["scheme"]
         host = WEB_REQUESTS["get_ws_connection_id"]["host"]
 
@@ -707,46 +753,6 @@ class PyGruenbeckCloud:
             await self.login()
 
         return self._auth_token.access_token  # type: ignore[union-attr]
-
-    async def _refresh_web_token(self) -> bool:
-        if not isinstance(self._auth_token, GruenbeckAuthToken):
-            msg = "Cannot refresh, missing Auth Token."
-            raise PyGruenbeckCloudMissingAuthTokenError(msg)
-
-        scheme = WEB_REQUESTS["web_token_refresh"]["scheme"]
-        host = WEB_REQUESTS["web_token_refresh"]["host"]
-
-        headers = WEB_REQUESTS["web_token_refresh"]["headers"]
-        path = self._placeholder_to_values_str(
-            WEB_REQUESTS["web_token_refresh"]["path"],  # type: ignore[arg-type]
-            {PARAM_NAME_TENANT: self._auth_token.tenant},
-        )
-        method = WEB_REQUESTS["web_token_refresh"]["method"]
-        data = self._placeholder_to_values_dict(
-            WEB_REQUESTS["web_token_refresh"]["data"],  # type: ignore[arg-type]
-            {
-                PARAM_NAME_REFRESH_TOKEN: self._auth_token.refresh_token,
-            },
-        )
-        query = WEB_REQUESTS["web_token_refresh"]["query_params"]
-
-        url = URL.build(scheme=scheme, host=host, path=path, query=query)  # type: ignore[arg-type]  # noqa: E501
-        response = await self._http_request(
-            url=url, headers=headers, method=method, data=data  # type: ignore[arg-type]
-        )
-        if not isinstance(response, dict):
-            msg = f"Incorrect response from {url}"
-            raise PyGruenbeckCloudResponseError(msg)
-
-        # @TODO - Check response if token is expired!
-
-        self._auth_token.access_token = response["access_token"]
-        self._auth_token.refresh_token = response["refresh_token"]
-        self._auth_token.not_before = datetime.fromtimestamp(response["not_before"])
-        self._auth_token.expires_on = datetime.fromtimestamp(response["expires_on"])
-        self._auth_token.expires_in = response["expires_in"]
-
-        return True
 
     async def close(self) -> None:
         """Close all connections."""

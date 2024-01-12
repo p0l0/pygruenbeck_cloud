@@ -25,7 +25,8 @@ setup(
     version=VERSION["__version__"],
     license="MIT License",
     url="https://github.com/p0l0/pygruenbeck_cloud",
-    download_url="https://github.com/p0l0/pygruenbeck_cloud/tarball/" + VERSION["__version__"],
+    download_url="https://github.com/p0l0/pygruenbeck_cloud/tarball/"
+    + VERSION["__version__"],
     author="Marco Neumann",
     author_email="pygruenbeck_cloud@binware.dev",
     description="Python Library to communicate with Grünbeck Cloud based Water softeners",

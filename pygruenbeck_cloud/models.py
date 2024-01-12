@@ -1,9 +1,9 @@
 """Models for pygruenbeck_cloud."""
 from __future__ import annotations
 
-import keyword
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+import keyword
 import re
 
 from pygruenbeck_cloud.const import UPDATE_INTERVAL
@@ -22,7 +22,9 @@ class GruenbeckAuthToken:
 
     def is_expired(self) -> bool:
         """Return if token is expired or not."""
-        return (datetime.now() - timedelta(seconds=UPDATE_INTERVAL)) <= self.expires_on
+        return not (
+            (datetime.now() - timedelta(seconds=UPDATE_INTERVAL)) <= self.expires_on
+        )
 
 
 @dataclass

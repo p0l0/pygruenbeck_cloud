@@ -268,7 +268,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
             "cache-control": "no-cache",
         },
     },
-    "get_mg_infos_request": {
+    "get_device_infos_request": {
         "scheme": API_SCHEME,
         "host": API_HOST,
         "path": f"/api/devices/{{{PARAM_NAME_DEVICE_ID}}}/{{{PARAM_NAME_ENDPOINT}}}",

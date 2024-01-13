@@ -28,6 +28,7 @@ from aiohttp.typedefs import StrOrURL
 from yarl import URL
 
 from .const import (
+    API_GET_MG_INFOS_ENDPOINT,
     API_WS_CLIENT_HEADER,
     API_WS_CLIENT_QUERY,
     API_WS_CLIENT_URL,
@@ -418,50 +419,60 @@ class PyGruenbeckCloud:
 
         return devices
 
-    # async def get_mg_infos(self, device: Device):
-    #     data = await self._get_mg_infos_request(device, API_GET_MG_INFOS_ENDPOINT)
+    async def get_device_infos(self, device: Device) -> Device:
+        """Retrieve information for device."""
+        data = await self._get_device_infos_request(device, API_GET_MG_INFOS_ENDPOINT)
+
+        new_device = Device.from_dict(data)
+
+        if new_device.id != device.id:
+            msg = f"Got invalid device id {new_device.id}, expected {device.id}"
+            raise PyGruenbeckCloudResponseError(msg)
+
+        return new_device
+
     #
-    # async def get_mg_infos_parameters(self, device: Device):
-    #     data = await self._get_mg_infos_request(
+    # async def get_device_infos_parameters(self, device: Device):
+    #     data = await self._get_device_infos_request(
     #         device, API_GET_MG_INFOS_ENDPOINT_PARAMETERS
     #     )
     #
-    # async def get_mg_infos_salt_measurements(self, device: Device):
-    #     data = await self._get_mg_infos_request(
+    # async def get_device_infos_salt_measurements(self, device: Device):
+    #     data = await self._get_device_infos_request(
     #         device, API_GET_MG_INFOS_ENDPOINT_SALT_MEASUREMENTS
     #     )
     #
-    # async def get_mg_infos_water_measurements(self, device: Device):
-    #     data = await self._get_mg_infos_request(
+    # async def get_device_infos_water_measurements(self, device: Device):
+    #     data = await self._get_device_infos_request(
     #         device, API_GET_MG_INFOS_ENDPOINT_WATER_MEASUREMENTS
     #     )
 
-    async def _get_mg_infos_request(
+    async def _get_device_infos_request(
         self, device: Device, endpoint: str = ""
     ) -> dict[str, str]:
-        """Get MG Infos from API."""
+        """Get Device Infos from API."""
         token = await self._get_web_access_token()
 
-        scheme = WEB_REQUESTS["get_mg_infos_request"]["scheme"]
-        host = WEB_REQUESTS["get_mg_infos_request"]["host"]
-        use_cookies = WEB_REQUESTS["get_mg_infos_request"]["use_cookies"]
+        scheme = WEB_REQUESTS["get_device_infos_request"]["scheme"]
+        host = WEB_REQUESTS["get_device_infos_request"]["host"]
+        use_cookies = WEB_REQUESTS["get_device_infos_request"]["use_cookies"]
 
         headers = self._placeholder_to_values_dict(
-            WEB_REQUESTS["get_mg_infos_request"]["headers"],
+            WEB_REQUESTS["get_device_infos_request"]["headers"],
             {
                 PARAM_NAME_ACCESS_TOKEN: token,
             },
         )
         path = self._placeholder_to_values_str(
-            WEB_REQUESTS["get_mg_infos_request"]["path"],
+            WEB_REQUESTS["get_device_infos_request"]["path"],
             {
                 PARAM_NAME_DEVICE_ID: device.id,
                 PARAM_NAME_ENDPOINT: endpoint,
             },
         )
-        method = WEB_REQUESTS["get_mg_infos_request"]["method"]
-        data = WEB_REQUESTS["get_mg_infos_request"]["data"]
-        query = WEB_REQUESTS["get_mg_infos_request"]["query_params"]
+        method = WEB_REQUESTS["get_device_infos_request"]["method"]
+        data = WEB_REQUESTS["get_device_infos_request"]["data"]
+        query = WEB_REQUESTS["get_device_infos_request"]["query_params"]
 
         url = URL.build(scheme=scheme, host=host, path=path, query=query)
         response = await self._http_request(

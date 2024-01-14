@@ -6,9 +6,18 @@ import datetime
 
 # from datetime import datetime, timedelta, timezone
 import keyword
+import logging
 import re
+from typing import Any
 
-from pygruenbeck_cloud.const import UPDATE_INTERVAL
+from pygruenbeck_cloud.const import (
+    API_WS_VALID_RESPONSE_TARGETS,
+    API_WS_VALID_RESPONSE_TYPES,
+    UPDATE_INTERVAL,
+)
+from pygruenbeck_cloud.exceptions import PyGruenbeckCloudError
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -41,7 +50,7 @@ class DeviceError:
     _date: datetime.datetime | None = field(init=False, repr=False, default=None)
 
     @staticmethod
-    def from_dict(data: dict) -> DeviceError:
+    def from_json(data: dict) -> DeviceError:
         """Prepare values from dict."""
         new_data = {}
         pattern = re.compile(r"(?<!^)(?=[A-Z])")  # camelCase to snake_case
@@ -119,8 +128,18 @@ class Device:
     unit: int | None = None
     _startup: datetime.date | None = field(init=False, repr=False, default=None)
 
+    # Values from WebSocket
+    soft_water_quantity: int | None = None
+    regeneration_counter: int | None = None
+    current_flow_rate: int | None = None
+    remaining_capacity_volume: float | None = None
+    remaining_capacity_percentage: int | None = None
+    salt_range: int | None = None
+    salt_consumption: float | None = None
+    next_service: int | None = None
+
     @staticmethod
-    def from_dict(data: dict) -> Device:
+    def from_json(data: dict) -> Device:
         """Prepare values from dict."""
         new_data = {}
         pattern = re.compile(r"(?<!^)(?=[A-Z])")  # camelCase to snake_case
@@ -134,6 +153,61 @@ class Device:
 
         print(new_data)
         return Device(**new_data)
+
+    def update_from_response(self, data: dict[str, Any]) -> Device:
+        """Update object with data from API response."""
+        if not data.get("type") in API_WS_VALID_RESPONSE_TYPES:
+            _LOGGER.debug(
+                "Got response type '%s' which we don't can process: %s",
+                data.get("type"),
+                data,
+            )
+            return self
+
+        if not data.get("target") in API_WS_VALID_RESPONSE_TARGETS:
+            _LOGGER.debug(
+                "Got unknown target '%s' in response: %s", data.get("target"), data
+            )
+            return self
+
+        message_arguments = data.get("arguments")
+        if not message_arguments:
+            _LOGGER.error("No arguments found in response: %s", data)
+            return self
+
+        for message in message_arguments:
+            if message.get("id") != self.serial_number:
+                msg = (
+                    f"Expected id value {self.serial_number}"
+                    f" but got {message.get('id')}"
+                )
+                raise PyGruenbeckCloudError(msg)
+
+            if message.get("mcountwater1"):
+                self.soft_water_quantity = message.get("mcountwater1")
+
+            if message.get("mcountreg"):
+                self.regeneration_counter = message.get("mcountreg")
+
+            if message.get("mflow1"):
+                self.current_flow_rate = message.get("mflow1")
+
+            if message.get("mrescapa1"):
+                self.remaining_capacity_volume = message.get("mrescapa1")
+
+            if message.get("mresidcap1"):
+                self.remaining_capacity_percentage = message.get("mresidcap1")
+
+            if message.get("msaltrange"):
+                self.salt_range = message.get("msaltrange")
+
+            if message.get("msaltusage"):
+                self.salt_consumption = message.get("msaltusage")
+
+            if message.get("mmaint"):
+                self.next_service = message.get("mmaint")
+
+        return self
 
     @property  # type: ignore[no-redef]
     def next_regeneration(self) -> datetime.datetime | None:
@@ -195,7 +269,7 @@ class Device:
 
         result: list[DeviceError] = []
         for entry in value:
-            result.append(DeviceError.from_dict(entry))
+            result.append(DeviceError.from_json(entry))
 
         self._errors = result
 

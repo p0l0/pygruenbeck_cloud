@@ -56,6 +56,7 @@ from .const import (
 from .exceptions import (
     PyGruenbeckCloudConnectionClosedError,
     PyGruenbeckCloudConnectionError,
+    PyGruenbeckCloudError,
     PyGruenbeckCloudMissingAuthTokenError,
     PyGruenbeckCloudResponseError,
 )
@@ -78,6 +79,7 @@ class PyGruenbeckCloud:
     _ws_session: ClientSession | None = None
     _ws_client: ClientWebSocketResponse | None = None
     _auth_token: GruenbeckAuthToken | None = None
+    _device: Device | None = None
 
     def __init__(self, username: str, password: str) -> None:
         """Initialize PyGruenbeckCloud Class."""
@@ -415,15 +417,45 @@ class PyGruenbeckCloud:
 
         for device in response:
             if "soft" in device["id"]:
-                devices.append(Device.from_dict(device))
+                devices.append(Device.from_json(device))
 
         return devices
 
-    async def get_device_infos(self, device: Device) -> Device:
+    @property
+    def device(self) -> Device | None:
+        """Return current device."""
+        return self._device
+
+    async def set_device(self, device: Device) -> None:
+        """Async setter for device."""
+        self._device = device
+        try:
+            self._device = await self.get_device_infos()
+        except PyGruenbeckCloudResponseError as ex:
+            msg = "Unable to get device infos"
+            raise PyGruenbeckCloudError(msg) from ex
+
+    async def set_device_from_id(self, device_id: str) -> bool:
+        """Set device from given device ID."""
+        devices = await self.get_devices()
+
+        for device in devices:
+            if device.id == device_id:
+                await self.set_device(device)
+                return True
+
+        return False
+
+    async def get_device_infos(self) -> Device:
         """Retrieve information for device."""
+        if self.device is None:
+            msg = "You need to select an device first"
+            raise PyGruenbeckCloudError(msg)
+
+        device = self.device
         data = await self._get_device_infos_request(device, API_GET_MG_INFOS_ENDPOINT)
 
-        new_device = Device.from_dict(data)
+        new_device = Device.from_json(data)
 
         if new_device.id != device.id:
             msg = f"Got invalid device id {new_device.id}, expected {device.id}"
@@ -488,8 +520,16 @@ class PyGruenbeckCloud:
 
         return response
 
-    async def enter_sd(self, device: Device) -> None:
+    async def enter_sd(
+        self,
+    ) -> None:
         """Send enter SD for WS."""
+        if self.device is None:
+            msg = "You need to select an device first"
+            raise PyGruenbeckCloudError(msg)
+
+        device = self.device
+
         token = await self._get_web_access_token()
 
         scheme = WEB_REQUESTS["enter_sd"]["scheme"]
@@ -521,8 +561,14 @@ class PyGruenbeckCloud:
             use_cookies=use_cookies,
         )
 
-    async def refresh_sd(self, device: Device) -> None:
+    async def refresh_sd(self) -> None:
         """Send refresh SD for WS."""
+        if self.device is None:
+            msg = "You need to select an device first"
+            raise PyGruenbeckCloudError(msg)
+
+        device = self.device
+
         token = await self._get_web_access_token()
 
         scheme = WEB_REQUESTS["refresh_sd"]["scheme"]
@@ -554,8 +600,14 @@ class PyGruenbeckCloud:
             use_cookies=use_cookies,
         )
 
-    async def leave_sd(self, device: Device) -> None:
+    async def leave_sd(self) -> None:
         """Send leave SD for WS."""
+        if self.device is None:
+            msg = "You need to select an device first"
+            raise PyGruenbeckCloudError(msg)
+
+        device = self.device
+
         token = await self._get_web_access_token()
 
         scheme = WEB_REQUESTS["leave_sd"]["scheme"]
@@ -688,6 +740,8 @@ class PyGruenbeckCloud:
             )
             # Send initial Message
             await self._ws_client.send_str(API_WS_INITIAL_MESSAGE)
+            await self.enter_sd()
+            await self.refresh_sd()
         except (
             WSServerHandshakeError,
             ClientConnectionError,
@@ -695,7 +749,7 @@ class PyGruenbeckCloud:
         ) as ex:
             raise PyGruenbeckCloudConnectionError(ex) from ex
 
-    async def listen(self, callback: Callable[[str], None]) -> None:
+    async def listen(self, callback: Callable[[Device], None]) -> None:
         """Listen for WebSocket messages."""
         if not self._ws_client or not self.connected:
             msg = "We are not connected to WebSocket"
@@ -711,7 +765,8 @@ class PyGruenbeckCloud:
             if ws_msg.type == WSMsgType.TEXT:
                 # There is a "%1E = Record Separator" char at the end of the string!
                 response = json.loads(ws_msg.data.strip())
-                callback(response)
+                device = self.device.update_from_response(data=response)  # type: ignore[union-attr]  # noqa: E501
+                callback(device)
 
             if ws_msg.type == WSMsgType.BINARY:
                 msg = "WebSocket response is binary type"
@@ -726,6 +781,7 @@ class PyGruenbeckCloud:
         if not self._ws_session or not self.connected:
             return
 
+        await self.leave_sd()
         await self._ws_session.close()
 
     async def _get_ws_tokens(self) -> list[str]:

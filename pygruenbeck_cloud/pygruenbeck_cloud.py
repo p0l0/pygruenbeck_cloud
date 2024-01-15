@@ -59,6 +59,7 @@ from .exceptions import (
     PyGruenbeckCloudError,
     PyGruenbeckCloudMissingAuthTokenError,
     PyGruenbeckCloudResponseError,
+    PyGruenbeckCloudResponseStatusError,
 )
 from .models import Device, GruenbeckAuthToken
 
@@ -174,6 +175,11 @@ class PyGruenbeckCloud:
             WEB_REQUESTS["login_step_1"]["query_params"],
             {PARAM_NAME_CODE_CHALLENGE: code_challenge},
         )
+
+        # If we already have cookies, we will get a 302 and our code_challenge will not
+        # match, that's why we need to clear our cookies
+        if self.session and self.session.cookie_jar:
+            self.session.cookie_jar.clear()
 
         url = URL.build(scheme=scheme, host=host, path=path, query=query)
         response = await self._http_request(
@@ -656,11 +662,6 @@ class PyGruenbeckCloud:
 
         try:
             _LOGGER.debug("Requesting URL %s with method %s", url, method)
-            print("Requesting URL %s with method %s", url, method)
-            print("We have following cookies: ")
-            for cookie in self.session.cookie_jar:
-                print(cookie.key)
-                print(cookie["domain"])
             async with self.session.request(
                 method=method,
                 url=url,
@@ -674,7 +675,7 @@ class PyGruenbeckCloud:
                         f" we expected {expected_status_code}."
                     )
                     _LOGGER.error(error)
-                    raise PyGruenbeckCloudResponseError(error)
+                    raise PyGruenbeckCloudResponseStatusError(error)
                 try:
                     response = await resp.json()
                 except ContentTypeError:

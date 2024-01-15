@@ -113,7 +113,7 @@ class Device:
     salt: list[DailyUsageEntry]
     water: list[DailyUsageEntry]
     hardware_version: str | None = None
-    _last_service: datetime.date | None = None
+    _last_service: datetime.date | None = field(init=False, repr=False, default=None)
     mode: int | None = None
     _next_regeneration: datetime.datetime | None = field(
         init=False, repr=False, default=None

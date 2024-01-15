@@ -10,6 +10,10 @@ class PyGruenbeckCloudResponseError(Exception):
     """PyGruenbeck API Response exception."""
 
 
+class PyGruenbeckCloudResponseStatusError(Exception):
+    """PyGruenbeck API Response status exception."""
+
+
 class PyGruenbeckCloudConnectionError(Exception):
     """PyGruenbeck API Connection Error exception."""
 

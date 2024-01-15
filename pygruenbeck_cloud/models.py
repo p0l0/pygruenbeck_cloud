@@ -108,11 +108,12 @@ class Device:
     next_regeneration: datetime.datetime
     time_zone: datetime.tzinfo
     startup: datetime.date
+    last_service: datetime.date
     errors: list[DeviceError]
     salt: list[DailyUsageEntry]
     water: list[DailyUsageEntry]
     hardware_version: str | None = None
-    last_service: str | None = None
+    _last_service: datetime.date | None = None
     mode: int | None = None
     _next_regeneration: datetime.datetime | None = field(
         init=False, repr=False, default=None
@@ -238,6 +239,19 @@ class Device:
             print("startup: Initial value not specified")
             return
         self._startup = datetime.datetime.strptime(value, "%Y-%m-%d")
+
+    @property  # type: ignore[no-redef]
+    def last_service(self) -> datetime.date | None:
+        """Return last service value."""
+        return self._last_service
+
+    @last_service.setter
+    def last_service(self, value: str | property) -> None:
+        """Parse and set last service as date from string value."""
+        if isinstance(value, property):
+            print("last_service: Initial value not specified")
+            return
+        self._last_service = datetime.datetime.strptime(value, "%Y-%m-%d")
 
     @property  # type: ignore[no-redef]
     def time_zone(self) -> datetime.tzinfo | None:

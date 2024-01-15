@@ -252,7 +252,7 @@ class Device:
             return
         tzinfo = datetime.datetime.strptime(value, "%z").tzinfo
         if self._next_regeneration:
-            self._next_regeneration.replace(tzinfo=tzinfo)
+            self._next_regeneration = self._next_regeneration.replace(tzinfo=tzinfo)
 
         self._time_zone = tzinfo
 

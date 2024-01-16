@@ -1,4 +1,5 @@
 """Constants for the Gruenbeck Cloud integration."""
+from datetime import timedelta
 from typing import Any, Final
 
 import aiohttp
@@ -30,6 +31,7 @@ LOGIN_HOST: Final = "gruenbeckb2c.b2clogin.com"
 LOGIN_CODE_CHALLENGE_CHARS: Final = (
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
+LOGIN_REFRESH_TIME_BEFORE_EXPIRE = timedelta(minutes=10)
 
 API_SCHEME: Final = "https"
 API_HOST: Final = "prod-eu-gruenbeck-api.azurewebsites.net"

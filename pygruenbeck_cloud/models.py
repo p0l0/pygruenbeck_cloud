@@ -14,7 +14,7 @@ from pygruenbeck_cloud.const import (
     API_WS_RESPONSE_TYPE_DATA,
     API_WS_RESPONSE_TYPE_DATA_TARGETS,
     API_WS_RESPONSE_TYPE_PING,
-    UPDATE_INTERVAL,
+    LOGIN_REFRESH_TIME_BEFORE_EXPIRE,
 )
 from pygruenbeck_cloud.exceptions import PyGruenbeckCloudError
 
@@ -32,9 +32,8 @@ class GruenbeckAuthToken:
 
     def is_expired(self) -> bool:
         """Return if token is expired or not."""
-        return not (
-            (datetime.datetime.now() - datetime.timedelta(seconds=UPDATE_INTERVAL))
-            <= self.expires_on
+        return datetime.datetime.now() >= (
+            self.expires_on - LOGIN_REFRESH_TIME_BEFORE_EXPIRE
         )
 
 

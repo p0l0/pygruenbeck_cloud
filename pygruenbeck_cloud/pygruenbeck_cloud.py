@@ -53,6 +53,7 @@ from .const import (
     PARAM_NAME_USERNAME,
     WEB_REQUESTS,
     WS_REQUEST_TIMEOUT,
+    LOGIN_REFRESH_TIME_BEFORE_EXPIRE,
 )
 from .exceptions import (
     PyGruenbeckCloudConnectionClosedError,
@@ -875,16 +876,8 @@ class PyGruenbeckCloud:
         if not isinstance(self._auth_token, GruenbeckAuthToken):
             await self.login()
 
-        self.logger.debug(
-            "Auth token should not renewed before: %s",
-            self._auth_token.not_before.isoformat(),  # type: ignore[union-attr]
-        )
         # Refreshes the token if needed
         if not self._auth_token.is_expired():  # type: ignore[union-attr]
-            self.logger.debug(
-                "Auth token is not expired, expires on: %s",
-                self._auth_token.expires_on.isoformat(),  # type: ignore[union-attr]
-            )
             return self._auth_token.access_token  # type: ignore[union-attr]
 
         refresh = await self._refresh_web_token()

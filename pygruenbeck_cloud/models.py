@@ -18,8 +18,6 @@ from pygruenbeck_cloud.const import (
 )
 from pygruenbeck_cloud.exceptions import PyGruenbeckCloudError
 
-_LOGGER = logging.getLogger(__name__)
-
 
 @dataclass
 class GruenbeckAuthToken:
@@ -262,6 +260,9 @@ class Device:
     # WebSocket PING counter
     ping_counter: int = 0
 
+    # Logger instance
+    logger: logging.Logger = logging.getLogger(__name__)
+
     @staticmethod
     def from_json(data: dict) -> Device:
         """Prepare values from dict."""
@@ -283,14 +284,14 @@ class Device:
         # Parse Message Data
         elif data.get("type") == API_WS_RESPONSE_TYPE_DATA:
             if not data.get("target") in API_WS_RESPONSE_TYPE_DATA_TARGETS:
-                _LOGGER.debug(
+                self.logger.debug(
                     "Got unknown target '%s' in response: %s", data.get("target"), data
                 )
                 return self
 
             message_arguments = data.get("arguments")
             if not message_arguments:
-                _LOGGER.error("No arguments found in response: %s", data)
+                self.logger.error("No arguments found in response: %s", data)
                 return self
 
             # Reset ping counter if we got a valid response
@@ -329,7 +330,7 @@ class Device:
                     self.next_service = message.get("mmaint")
         # Got an unknown response type
         else:
-            _LOGGER.debug(
+            self.logger.debug(
                 "Got response type '%s' which we don't can process: %s",
                 data.get("type"),
                 data,

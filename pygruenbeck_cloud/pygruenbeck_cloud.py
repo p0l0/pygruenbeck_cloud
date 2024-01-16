@@ -76,6 +76,7 @@ class PyGruenbeckCloud:
     _ws_client: ClientWebSocketResponse | None = None
     _auth_token: GruenbeckAuthToken | None = None
     _device: Device | None = None
+    logger: logging.Logger = logging.getLogger(__name__)
 
     def __init__(self, username: str, password: str) -> None:
         """Initialize PyGruenbeckCloud Class."""
@@ -138,7 +139,7 @@ class PyGruenbeckCloud:
         auth_data = await self._login_step1(code_challenge)
 
         if not await self._login_step2(auth_data):
-            _LOGGER.error("Error trying to log in!")
+            self.logger.error("Error trying to log in!")
             return False
 
         code = await self._login_step3(auth_data)
@@ -430,6 +431,9 @@ class PyGruenbeckCloud:
     async def set_device(self, device: Device) -> None:
         """Async setter for device."""
         self._device = device
+
+        # Set logger for Device
+        self._device.logger = self.logger
         try:
             self._device = await self.get_device_infos()
         except PyGruenbeckCloudResponseError as ex:
@@ -659,7 +663,7 @@ class PyGruenbeckCloud:
             self._close_session = True
 
         try:
-            _LOGGER.debug("Requesting URL %s with method %s", url, method)
+            self.logger.debug("Requesting URL %s with method %s", url, method)
             async with self.session.request(
                 method=method,
                 url=url,
@@ -672,7 +676,7 @@ class PyGruenbeckCloud:
                         f"Response status code for {url} is {resp.status},"
                         f" we expected {expected_status_code}."
                     )
-                    _LOGGER.error(error)
+                    self.logger.error(error)
                     raise PyGruenbeckCloudResponseStatusError(error)
                 try:
                     response = await resp.json()
@@ -682,7 +686,7 @@ class PyGruenbeckCloud:
                 if use_cookies:
                     self.session.cookie_jar.update_cookies(resp.cookies)
 
-                _LOGGER.debug(
+                self.logger.debug(
                     "Response from URL %s with status %d was %s",
                     url,
                     resp.status,
@@ -699,7 +703,7 @@ class PyGruenbeckCloud:
 
                 return response
         except (ClientConnectorError, ServerDisconnectedError) as ex:
-            _LOGGER.error("%s", ex)
+            self.logger.error("%s", ex)
             raise PyGruenbeckCloudConnectionError(ex) from ex
 
     @property
@@ -756,7 +760,7 @@ class PyGruenbeckCloud:
 
         while not self._ws_client.closed:
             ws_msg = await self._ws_client.receive()
-            _LOGGER.debug("WebSocket Message received: %s", ws_msg.data)
+            self.logger.debug("WebSocket Message received: %s", ws_msg.data)
 
             if ws_msg.type == WSMsgType.ERROR:
                 raise PyGruenbeckCloudConnectionError(self._ws_client.exception())
@@ -773,7 +777,7 @@ class PyGruenbeckCloud:
                     if device.ping_counter == API_WS_RESPONSE_TYPE_PING_COUNT:
                         await self.refresh_sd()
                 else:
-                    _LOGGER.debug("Got empty response: %s", response)
+                    self.logger.debug("Got empty response: %s", response)
 
             if ws_msg.type == WSMsgType.BINARY:
                 msg = "WebSocket response is binary type"
@@ -871,13 +875,21 @@ class PyGruenbeckCloud:
         if not isinstance(self._auth_token, GruenbeckAuthToken):
             await self.login()
 
+        self.logger.debug(
+            "Auth token should not renewed before: %s",
+            self._auth_token.not_before.isoformat(),  # type: ignore[union-attr]
+        )
         # Refreshes the token if needed
         if not self._auth_token.is_expired():  # type: ignore[union-attr]
+            self.logger.debug(
+                "Auth token is not expired, expires on: %s",
+                self._auth_token.expires_on.isoformat(),  # type: ignore[union-attr]
+            )
             return self._auth_token.access_token  # type: ignore[union-attr]
 
         refresh = await self._refresh_web_token()
         if not refresh:
-            _LOGGER.info("Unable to refresh token, need to relogin.")
+            self.logger.info("Unable to refresh token, need to relogin.")
             await self.login()
 
         return self._auth_token.access_token  # type: ignore[union-attr]

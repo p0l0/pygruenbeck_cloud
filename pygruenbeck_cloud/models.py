@@ -11,8 +11,9 @@ import re
 from typing import Any
 
 from pygruenbeck_cloud.const import (
-    API_WS_VALID_RESPONSE_TARGETS,
-    API_WS_VALID_RESPONSE_TYPES,
+    API_WS_RESPONSE_TYPE_DATA,
+    API_WS_RESPONSE_TYPE_DATA_TARGETS,
+    API_WS_RESPONSE_TYPE_PING,
     UPDATE_INTERVAL,
 )
 from pygruenbeck_cloud.exceptions import PyGruenbeckCloudError
@@ -95,6 +96,125 @@ class DailyUsageEntry:
 
 
 @dataclass
+class DeviceParameters:
+    """Object holding Device Parameters."""
+
+    # Common
+    dlst: bool  # pdlstauto -> automatic change summer/winter
+
+    # Signals
+    buzzer: bool  # pbuzzer -> signal on error
+    buzzer_from: datetime.time  # pbuzzfrom
+    buzzer_to: datetime.time  # pbuzzto
+    push_notification: bool  # pallowpushnotification
+    email_notification: bool  # pallowemail
+
+    # Water
+    water_hardness_unit: int  # ? phunit?
+    raw_water_hardness: int  # prawhard
+    soft_water_hardness: int  # psetsoft
+
+    # Mode
+    mode: int  # pmode
+    # {% if value == '1' %}
+    #               {% set modus = 'Eco' %}
+    #           {% endif %}
+    #           {% if value == '2' %}
+    #               {% set modus = 'Comfort' %}
+    #           {% endif %}
+    #           {% if value == '3' %}
+    #               {% set modus = 'Power' %}
+    #           {% endif %}
+    # Individual is 4?
+    mode_monday: int  # pmodemo
+    mode_tuesday: int  # pmodetu
+    mode_wednesday: int  # pmodewe
+    mode_thursday: int  # pmodeth
+    mode_friday: int  # pmodefr
+    mode_saturday: int  # pmodesa
+    mode_sunday: int  # pmodesu
+
+    # Regeneration
+    regeneration_mode: int  # pregmode ?
+    regeneration_time: datetime.time  # pregmo1 ?
+
+    # Infos
+    maintenance_interval: int  # pmaintint
+    installer_name: str  # pname
+    installer_phone: str  # ptelnr
+    installer_email: str  # pmailadress
+
+    # Additional unknown parameter
+    pntpsync: bool
+    pcfcontact: bool
+    pknx: bool
+    pmonflow: bool
+    pmondisinf: bool
+    pledatsaltpre: bool
+    prescaplimit: int
+    pcurrent: int
+    pload: int
+    pforcedregdist: int
+    pfreqregvalve: int
+    pfreqblendvalve: int
+    pledbright: int
+    pvolume: int
+    ppratesoftwater: float
+    pprateblending: float
+    pprateregwater: float
+    psetcapmo: int
+    psetcaptu: int
+    psetcapwe: int
+    psetcapth: int
+    psetcapfr: int
+    psetcapsa: int
+    psetcapsu: int
+    pnomflow: float
+    ppressurereg: int
+    pmonregmeter: int
+    pmonsalting: int
+    prinsing: float
+    pbackwash: int
+    pwashingout: int
+    pminvolmincap: float
+    pmaxvolmincap: float
+    pminvolmaxcap: float
+    pmaxvolmaxcap: float
+    pmaxdurdisinfect: int
+    pmaxresdurreg: int
+    planguage: int
+    pprogout: int
+    pprogin: int
+    ppowerfail: int
+    pmodedesinf: int
+    pled: int
+    pregmo1: datetime.time
+    pregmo2: datetime.time
+    pregmo3: datetime.time
+    pregtu1: datetime.time
+    pregtu2: datetime.time
+    pregtu3: datetime.time
+    pregwe1: datetime.time
+    pregwe2: datetime.time
+    pregwe3: datetime.time
+    pregth1: datetime.time
+    pregth2: datetime.time
+    pregth3: datetime.time
+    pregfr1: datetime.time
+    pregfr2: datetime.time
+    pregfr3: datetime.time
+    pregsa1: datetime.time
+    pregsa2: datetime.time
+    pregsa3: datetime.time
+    pregsu1: datetime.time
+    pregsu2: datetime.time
+    pregsu3: datetime.time
+    pmonblend: int
+    poverload: int
+    pfreqregvalve2: int
+
+
+@dataclass
 class Device:
     """Object holding Device Information."""
 
@@ -132,12 +252,15 @@ class Device:
     # Values from WebSocket
     soft_water_quantity: int | None = None
     regeneration_counter: int | None = None
-    current_flow_rate: int | None = None
+    current_flow_rate: float | None = None
     remaining_capacity_volume: float | None = None
     remaining_capacity_percentage: int | None = None
     salt_range: int | None = None
     salt_consumption: float | None = None
     next_service: int | None = None
+
+    # WebSocket PING counter
+    ping_counter: int = 0
 
     @staticmethod
     def from_json(data: dict) -> Device:
@@ -149,64 +272,68 @@ class Device:
             if keyword.iskeyword(var_name):
                 var_name = f"{var_name}_"
             new_data[var_name] = value
-            # if hasattr(self, var_name):
-            #     setattr(self, var_name, value)
 
-        print(new_data)
         return Device(**new_data)
 
     def update_from_response(self, data: dict[str, Any]) -> Device:
         """Update object with data from API response."""
-        if not data.get("type") in API_WS_VALID_RESPONSE_TYPES:
+        # Count how many PINGs we got in succession
+        if data.get("type") == API_WS_RESPONSE_TYPE_PING:
+            self.ping_counter += 1
+        # Parse Message Data
+        elif data.get("type") == API_WS_RESPONSE_TYPE_DATA:
+            if not data.get("target") in API_WS_RESPONSE_TYPE_DATA_TARGETS:
+                _LOGGER.debug(
+                    "Got unknown target '%s' in response: %s", data.get("target"), data
+                )
+                return self
+
+            message_arguments = data.get("arguments")
+            if not message_arguments:
+                _LOGGER.error("No arguments found in response: %s", data)
+                return self
+
+            # Reset ping counter if we got a valid response
+            self.ping_counter = 0
+
+            for message in message_arguments:
+                if message.get("id") != self.serial_number:
+                    msg = (
+                        f"Expected id value {self.serial_number}"
+                        f" but got {message.get('id')}"
+                    )
+                    raise PyGruenbeckCloudError(msg)
+
+                if message.get("mcountwater1") is not None:
+                    self.soft_water_quantity = message.get("mcountwater1")
+
+                if message.get("mcountreg") is not None:
+                    self.regeneration_counter = message.get("mcountreg")
+
+                if message.get("mflow1") is not None:
+                    self.current_flow_rate = float(message.get("mflow1"))
+
+                if message.get("mrescapa1") is not None:
+                    self.remaining_capacity_volume = message.get("mrescapa1")
+
+                if message.get("mresidcap1") is not None:
+                    self.remaining_capacity_percentage = message.get("mresidcap1")
+
+                if message.get("msaltrange") is not None:
+                    self.salt_range = message.get("msaltrange")
+
+                if message.get("msaltusage") is not None:
+                    self.salt_consumption = message.get("msaltusage")
+
+                if message.get("mmaint") is not None:
+                    self.next_service = message.get("mmaint")
+        # Got an unknown response type
+        else:
             _LOGGER.debug(
                 "Got response type '%s' which we don't can process: %s",
                 data.get("type"),
                 data,
             )
-            return self
-
-        if not data.get("target") in API_WS_VALID_RESPONSE_TARGETS:
-            _LOGGER.debug(
-                "Got unknown target '%s' in response: %s", data.get("target"), data
-            )
-            return self
-
-        message_arguments = data.get("arguments")
-        if not message_arguments:
-            _LOGGER.error("No arguments found in response: %s", data)
-            return self
-
-        for message in message_arguments:
-            if message.get("id") != self.serial_number:
-                msg = (
-                    f"Expected id value {self.serial_number}"
-                    f" but got {message.get('id')}"
-                )
-                raise PyGruenbeckCloudError(msg)
-
-            if message.get("mcountwater1"):
-                self.soft_water_quantity = message.get("mcountwater1")
-
-            if message.get("mcountreg"):
-                self.regeneration_counter = message.get("mcountreg")
-
-            if message.get("mflow1"):
-                self.current_flow_rate = message.get("mflow1")
-
-            if message.get("mrescapa1"):
-                self.remaining_capacity_volume = message.get("mrescapa1")
-
-            if message.get("mresidcap1"):
-                self.remaining_capacity_percentage = message.get("mresidcap1")
-
-            if message.get("msaltrange"):
-                self.salt_range = message.get("msaltrange")
-
-            if message.get("msaltusage"):
-                self.salt_consumption = message.get("msaltusage")
-
-            if message.get("mmaint"):
-                self.next_service = message.get("mmaint")
 
         return self
 
@@ -219,7 +346,6 @@ class Device:
     def next_regeneration(self, value: str | property) -> None:
         """Parse and set next regeneration as datetime from string value."""
         if isinstance(value, property):
-            print("next_regeneration: Initial value not specified")
             return
         # Provided date is UTC, but format has no timezone information
         datetime_obj = datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
@@ -236,7 +362,6 @@ class Device:
     def startup(self, value: str | property) -> None:
         """Parse and set startup as date from string value."""
         if isinstance(value, property):
-            print("startup: Initial value not specified")
             return
         self._startup = datetime.datetime.strptime(value, "%Y-%m-%d")
 
@@ -249,7 +374,6 @@ class Device:
     def last_service(self, value: str | property) -> None:
         """Parse and set last service as date from string value."""
         if isinstance(value, property):
-            print("last_service: Initial value not specified")
             return
         self._last_service = datetime.datetime.strptime(value, "%Y-%m-%d")
 
@@ -262,7 +386,6 @@ class Device:
     def time_zone(self, value: str | property) -> None:
         """Parse and set time zone as tzinfo from string value."""
         if isinstance(value, property):
-            print("timezone: Initial value not specified")
             return
         tzinfo = datetime.datetime.strptime(value, "%z").tzinfo
         if self._next_regeneration:

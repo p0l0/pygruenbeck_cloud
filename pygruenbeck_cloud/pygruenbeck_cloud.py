@@ -34,6 +34,7 @@ from .const import (
     API_WS_CLIENT_URL,
     API_WS_HOST,
     API_WS_INITIAL_MESSAGE,
+    API_WS_RESPONSE_TYPE_PING_COUNT,
     API_WS_SCHEME_WS,
     LOGIN_CODE_CHALLENGE_CHARS,
     PARAM_NAME_ACCESS_TOKEN,
@@ -63,12 +64,6 @@ from .exceptions import (
 )
 from .models import Device, GruenbeckAuthToken
 
-# logging.basicConfig(level=logging.INFO)
-# logging.basicConfig(
-#     level=logging.DEBUG,
-#     format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
-#     datefmt="%d/%b/%Y %H:%M:%S",
-# )
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -606,6 +601,9 @@ class PyGruenbeckCloud:
             use_cookies=use_cookies,
         )
 
+        # Reset ping counter after refreshing
+        self.device.ping_counter = 0
+
     async def leave_sd(self) -> None:
         """Send leave SD for WS."""
         if self.device is None:
@@ -766,8 +764,16 @@ class PyGruenbeckCloud:
             if ws_msg.type == WSMsgType.TEXT:
                 # There is a "%1E = Record Separator" char at the end of the string!
                 response = json.loads(ws_msg.data.strip())
-                device = self.device.update_from_response(data=response)  # type: ignore[union-attr]  # noqa: E501
-                callback(device)
+                if response:
+                    device = self.device.update_from_response(data=response)  # type: ignore[union-attr]  # noqa: E501
+                    callback(device)
+
+                    # We need to refresh to get more Data if we got only PING responses
+                    # for {API_WS_RESPONSE_TYPE_PING_COUNT} times
+                    if device.ping_counter == API_WS_RESPONSE_TYPE_PING_COUNT:
+                        await self.refresh_sd()
+                else:
+                    _LOGGER.debug("Got empty response: %s", response)
 
             if ws_msg.type == WSMsgType.BINARY:
                 msg = "WebSocket response is binary type"

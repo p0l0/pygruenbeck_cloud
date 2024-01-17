@@ -9,6 +9,7 @@ import json
 import logging
 import random
 import socket
+from json import JSONDecodeError
 from types import TracebackType
 from typing import Any
 
@@ -767,18 +768,24 @@ class PyGruenbeckCloud:
                 raise PyGruenbeckCloudConnectionError(self._ws_client.exception())
 
             if ws_msg.type == WSMsgType.TEXT:
-                # There is a "%1E = Record Separator" char at the end of the string!
-                response = json.loads(ws_msg.data.strip())
-                if response:
-                    device = self.device.update_from_response(data=response)  # type: ignore[union-attr]  # noqa: E501
-                    callback(device)
+                try:
+                    # There is a "%1E = Record Separator" char at the end of the string!
+                    response = json.loads(ws_msg.data.strip())
 
-                    # We need to refresh to get more Data if we got only PING responses
-                    # for {API_WS_RESPONSE_TYPE_PING_COUNT} times
-                    if device.ping_counter == API_WS_RESPONSE_TYPE_PING_COUNT:
-                        await self.refresh_sd()
-                else:
-                    self.logger.debug("Got empty response: %s", response)
+                    if response:
+                        device = self.device.update_from_response(data=response)  # type: ignore[union-attr]  # noqa: E501
+                        callback(device)
+
+                        # We need to refresh to get more Data if we got only PING responses
+                        # for {API_WS_RESPONSE_TYPE_PING_COUNT} times
+                        if device.ping_counter == API_WS_RESPONSE_TYPE_PING_COUNT:
+                            await self.refresh_sd()
+                    else:
+                        self.logger.debug("Skipping empty response: %s", response)
+                except JSONDecodeError as ex:
+                    self.logger.debug(
+                        "Skipping invalid JSON response: %s", ws_msg.data.strip()
+                    )
 
             if ws_msg.type == WSMsgType.BINARY:
                 msg = "WebSocket response is binary type"

@@ -37,6 +37,7 @@ repos:
         args:
           - --branch=main
       - id: trailing-whitespace
+        exclude: ^docs/
   - repo: https://github.com/cdce8p/python-typing-update
     rev: v0.6.0
     hooks:

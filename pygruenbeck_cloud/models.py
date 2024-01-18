@@ -17,6 +17,19 @@ from pygruenbeck_cloud.const import (
 from pygruenbeck_cloud.exceptions import PyGruenbeckCloudError
 
 
+def camel_to_snake(data: dict) -> dict:
+    """Return dict with keys converted from camelCase to snake_case."""
+    new_data = {}
+    pattern = re.compile(r"(?<!^)(?=[A-Z])")  # camelCase to snake_case
+    for key, value in data.items():
+        var_name = pattern.sub("_", key).lower()
+        if keyword.iskeyword(var_name):
+            var_name = f"{var_name}_"
+        new_data[var_name] = value
+
+    return new_data
+
+
 @dataclass
 class GruenbeckAuthToken:
     """Object holding auth tokens for gruenbeck cloud."""
@@ -48,13 +61,7 @@ class DeviceError:
     @staticmethod
     def from_json(data: dict) -> DeviceError:
         """Prepare values from json dict."""
-        new_data = {}
-        pattern = re.compile(r"(?<!^)(?=[A-Z])")  # camelCase to snake_case
-        for key, value in data.items():
-            var_name = pattern.sub("_", key).lower()
-            if keyword.iskeyword(var_name):
-                var_name = f"{var_name}_"
-            new_data[var_name] = value
+        new_data = camel_to_snake(data)
 
         return DeviceError(**new_data)
 
@@ -263,15 +270,18 @@ class Device:
     @staticmethod
     def from_json(data: dict) -> Device:
         """Prepare values from json dict."""
-        new_data = {}
-        pattern = re.compile(r"(?<!^)(?=[A-Z])")  # camelCase to snake_case
-        for key, value in data.items():
-            var_name = pattern.sub("_", key).lower()
-            if keyword.iskeyword(var_name):
-                var_name = f"{var_name}_"
-            new_data[var_name] = value
+        new_data = camel_to_snake(data)
 
         return Device(**new_data)
+
+    def update_from_json(self, data: dict) -> Device:
+        """Updated current object from json dict."""
+        new_data = camel_to_snake(data)
+
+        for key, value in new_data.items():
+            setattr(self, key, value)
+
+        return self
 
     def update_from_response(self, data: dict[str, Any]) -> Device:
         """Update object with data from API response."""

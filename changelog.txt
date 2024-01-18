@@ -1,4 +1,7 @@
-Version 0.0.2 (2024-01-12)
+Version 0.0.3 (2024-01-18)
+- Fix error not updating current device on get_device_infos call
+
+Version 0.0.2 (2024-01-18)
 - First working version for Home Assistant integration
 
 Version 0.0.1 (2024-01-08)

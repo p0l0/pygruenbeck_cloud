@@ -455,19 +455,18 @@ class PyGruenbeckCloud:
     async def get_device_infos(self) -> Device:
         """Retrieve information for device."""
         if self.device is None:
-            msg = "You need to select an device first"
+            msg = "You need to select a device first"
             raise PyGruenbeckCloudError(msg)
 
-        device = self.device
-        data = await self._get_device_infos_request(device, API_GET_MG_INFOS_ENDPOINT)
+        data = await self._get_device_infos_request(
+            self.device, API_GET_MG_INFOS_ENDPOINT
+        )
 
-        new_device = Device.from_json(data)
-
-        if new_device.id != device.id:
-            msg = f"Got invalid device id {new_device.id}, expected {device.id}"
+        if data.get("id") != self.device.id:
+            msg = f"Got invalid device id {data.get('id')}, expected {self.device.id}"
             raise PyGruenbeckCloudResponseError(msg)
 
-        return new_device
+        return self.device.update_from_json(data)
 
     #
     # async def get_device_infos_parameters(self, device: Device):

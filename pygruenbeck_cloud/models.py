@@ -275,7 +275,7 @@ class Device:
         return Device(**new_data)
 
     def update_from_json(self, data: dict) -> Device:
-        """Updated current object from json dict."""
+        """Update current object from json dict."""
         new_data = camel_to_snake(data)
 
         for key, value in new_data.items():

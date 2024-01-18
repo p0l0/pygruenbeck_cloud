@@ -1,15 +1,17 @@
-"""Constants for the Gruenbeck Cloud integration."""
+"""Constants for the Gruenbeck Cloud library."""
 from datetime import timedelta
 from typing import Any, Final
 
 import aiohttp
 
+# User Agent configuration
 USER_AGENT_APP: Final = "Gruenbeck/354 CFNetwork/1209 Darwin/20.2.0"
 USER_AGENT_WS: Final = (
     "Mozilla/5.0 (iPhone; CPU iPhone OS 14_2 like Mac OS X)"
     " AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
 )
 
+# API Parameters mapping
 PARAM_NAME_CODE_CHALLENGE: Final = "code_challenge"
 PARAM_NAME_CSRF_TOKEN: Final = "csrf_token"
 PARAM_NAME_TENANT: Final = "tenant"
@@ -25,7 +27,7 @@ PARAM_NAME_CONNECTION_ID: Final = "connection_id"
 PARAM_NAME_DEVICE_ID: Final = "device_id"
 PARAM_NAME_ENDPOINT: Final = "endpoint"
 
-
+# Details needed for login
 LOGIN_SCHEME: Final = "https"
 LOGIN_HOST: Final = "gruenbeckb2c.b2clogin.com"
 LOGIN_CODE_CHALLENGE_CHARS: Final = (
@@ -33,6 +35,7 @@ LOGIN_CODE_CHALLENGE_CHARS: Final = (
 )
 LOGIN_REFRESH_TIME_BEFORE_EXPIRE = timedelta(minutes=10)
 
+# HTTP API Details
 API_SCHEME: Final = "https"
 API_HOST: Final = "prod-eu-gruenbeck-api.azurewebsites.net"
 API_VERSION: Final = "2020-08-03"
@@ -41,9 +44,11 @@ API_GET_MG_INFOS_ENDPOINT_PARAMETERS: Final = "parameters"
 API_GET_MG_INFOS_ENDPOINT_SALT_MEASUREMENTS: Final = "measurements/salt"
 API_GET_MG_INFOS_ENDPOINT_WATER_MEASUREMENTS: Final = "measurements/water"
 
+# WS API Details
 API_WS_SCHEME_HTTP: Final = "https"
 API_WS_SCHEME_WS: Final = "wss"
 API_WS_HOST: Final = "prod-eu-gruenbeck-signalr.service.signalr.net"
+API_WS_REQUEST_TIMEOUT: Final = 2 * 60  # 2 minutes
 API_WS_CLIENT_URL: Final = "/client/"
 API_WS_CLIENT_QUERY: dict[str, str] = {
     "hub": "gruenbeck",
@@ -70,7 +75,7 @@ API_WS_RESPONSE_TYPE_DATA_TARGETS: list[str] = [
     "SendMessageToDevice",
 ]
 
-
+# Web Request details
 WEB_REQUESTS: dict[str, dict[str, Any]] = {
     "login_step_1": {
         "scheme": LOGIN_SCHEME,
@@ -373,18 +378,10 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
 # }
 
 
-HTTP_REQUEST_TIMEOUT: Final = 30
-API_QUERY_PARAM_VERSION: Final = f"api-version={API_VERSION}"
-API_GET_DEVICE_PATH: Final = "/api/devices"
-API_GET_DEVICE_ENTER: Final = "/realtime/enter"
-API_GET_DEVICE_REFRESH: Final = "/realtime/refresh"
-API_GET_DEVICE_LEAVE: Final = "/realtime/leave"
-API_GET_WS_NEGOTIATION: Final = "/api/realtime/negotiate"
-
-
-API_WS_HTTP_NEGOTIATION: Final = "/client/negotiate?hub=gruenbecK"
-
-WS_REQUEST_TIMEOUT: Final = 2 * 60  # 2 minutes
-
-# @TODO - Avoid blocking!
-UPDATE_INTERVAL: Final = 360
+# HTTP_REQUEST_TIMEOUT: Final = 30
+# API_QUERY_PARAM_VERSION: Final = f"api-version={API_VERSION}"
+# API_GET_DEVICE_PATH: Final = "/api/devices"
+# API_GET_DEVICE_ENTER: Final = "/realtime/enter"
+# API_GET_DEVICE_REFRESH: Final = "/realtime/refresh"
+# API_GET_DEVICE_LEAVE: Final = "/realtime/leave"
+# API_GET_WS_NEGOTIATION: Final = "/api/realtime/negotiate"

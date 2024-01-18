@@ -6,10 +6,10 @@ from collections.abc import Callable
 from datetime import datetime
 import hashlib
 import json
+from json import JSONDecodeError
 import logging
 import random
 import socket
-from json import JSONDecodeError
 from types import TracebackType
 from typing import Any
 
@@ -35,6 +35,7 @@ from .const import (
     API_WS_CLIENT_URL,
     API_WS_HOST,
     API_WS_INITIAL_MESSAGE,
+    API_WS_REQUEST_TIMEOUT,
     API_WS_RESPONSE_TYPE_PING_COUNT,
     API_WS_SCHEME_WS,
     LOGIN_CODE_CHALLENGE_CHARS,
@@ -53,8 +54,6 @@ from .const import (
     PARAM_NAME_TRANS_ID,
     PARAM_NAME_USERNAME,
     WEB_REQUESTS,
-    WS_REQUEST_TIMEOUT,
-    LOGIN_REFRESH_TIME_BEFORE_EXPIRE,
 )
 from .exceptions import (
     PyGruenbeckCloudConnectionClosedError,
@@ -113,7 +112,7 @@ class PyGruenbeckCloud:
 
     @staticmethod
     async def _get_code_challenge() -> list[str]:
-        """Get Grünbeck Cloud Code Challenge."""
+        """Get Grünbeck Cloud API Code Challenge."""
         challenge_hash = ""
         result = ""
 
@@ -141,7 +140,7 @@ class PyGruenbeckCloud:
         auth_data = await self._login_step1(code_challenge)
 
         if not await self._login_step2(auth_data):
-            self.logger.error("Error trying to log in!")
+            self.logger.error("Unable to login")
             return False
 
         code = await self._login_step3(auth_data)
@@ -736,7 +735,7 @@ class PyGruenbeckCloud:
 
         if self._ws_session is None:
             self._ws_session = ClientSession(
-                timeout=ClientTimeout(total=WS_REQUEST_TIMEOUT)
+                timeout=ClientTimeout(total=API_WS_REQUEST_TIMEOUT)
             )
 
         try:
@@ -776,13 +775,13 @@ class PyGruenbeckCloud:
                         device = self.device.update_from_response(data=response)  # type: ignore[union-attr]  # noqa: E501
                         callback(device)
 
-                        # We need to refresh to get more Data if we got only PING responses
-                        # for {API_WS_RESPONSE_TYPE_PING_COUNT} times
+                        # We need to refresh to get more Data if we got only PING
+                        # responses for {API_WS_RESPONSE_TYPE_PING_COUNT} times
                         if device.ping_counter == API_WS_RESPONSE_TYPE_PING_COUNT:
                             await self.refresh_sd()
                     else:
                         self.logger.debug("Skipping empty response: %s", response)
-                except JSONDecodeError as ex:
+                except JSONDecodeError:
                     self.logger.debug(
                         "Skipping invalid JSON response: %s", ws_msg.data.strip()
                     )

@@ -4,7 +4,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 import aiohttp
-from aiohttp import web
+from aiohttp import ClientSession, CookieJar, web
 import pytest
 
 from pygruenbeck_cloud import PyGruenbeckCloud
@@ -15,20 +15,15 @@ from pygruenbeck_cloud.const import (
     WEB_REQUESTS,
 )
 
+from tests.conftest import FakeApi
+
 
 @patch("pygruenbeck_cloud.const.WEB_REQUESTS")
 @pytest.mark.asyncio
 async def test_login(
     mock_request,
     aiohttp_server: any,
-    login_step_1_response: str,
-    login_step_1_response_headers: dict,
-    login_step_2_response: str,
-    login_step_2_response_headers: dict,
-    login_step_3_response: str,
-    login_step_3_response_headers: dict,
-    login_step_4_response: str,
-    login_step_4_response_headers: dict,
+    fake_api: FakeApi,
 ):
     """Test login with patch"""
     # From request 1
@@ -42,8 +37,8 @@ async def test_login(
         req1 = WEB_REQUESTS["login_step_1"]["path"]
         if request.path == req1:
             return web.Response(
-                body=login_step_1_response,
-                headers=login_step_1_response_headers,
+                body=fake_api.login_step_1_response(),
+                headers=fake_api.login_step_1_response_headers(),
                 status=200,
             )
 
@@ -59,11 +54,17 @@ async def test_login(
             if key not in data.keys() or data[key] != value.format(**data_values):
                 assert False, f"Incorrect value for {key} parameter: {value}"
 
+        # Check if cookies are set
+        print("Headers: ")
+        print(request.headers)
+        print("Cookies: ")
+        print(request.cookies)
+
         req2 = WEB_REQUESTS["login_step_2"]["path"].format(**tenant)
         if request.path == req2:
             return web.Response(
-                text=login_step_2_response,
-                headers=login_step_2_response_headers,
+                text=fake_api.login_step_2_response(),
+                headers=fake_api.login_step_2_response_headers(),
                 status=200,
             )
 
@@ -73,8 +74,8 @@ async def test_login(
         req3 = WEB_REQUESTS["login_step_3"]["path"].format(**tenant)
         if request.path == req3:
             return web.Response(
-                text=login_step_3_response,
-                headers=login_step_3_response_headers,
+                text=fake_api.login_step_3_response(),
+                headers=fake_api.login_step_3_response_headers(),
                 status=aiohttp.http.HTTPStatus.FOUND,
             )
 
@@ -84,8 +85,8 @@ async def test_login(
         req4 = WEB_REQUESTS["login_step_4"]["path"].format(**tenant)
         if request.path == req4:
             return web.Response(
-                text=login_step_4_response,
-                headers=login_step_4_response_headers,
+                text=fake_api.login_step_4_response(),
+                headers=fake_api.login_step_4_response_headers(),
                 status=200,
             )
 
@@ -123,9 +124,16 @@ async def test_login(
     return_value["login_step_4"]["host"] = f"{server.host}:{server.port}"
     mock_request.return_value = return_value
 
+    fake_api.domain = f"{server.host}:{server.port}"
+
     gruenbeck = PyGruenbeckCloud(
         username=username,
         password=password,
+    )
+    gruenbeck.session = ClientSession(
+        cookie_jar=CookieJar(
+            unsafe=True, treat_as_secure_origin=f"http://{fake_api.domain}"
+        )
     )
 
     result = await gruenbeck.login()

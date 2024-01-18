@@ -7,19 +7,15 @@ class PyGruenbeckCloudError(Exception):
 
 
 class PyGruenbeckCloudResponseError(Exception):
-    """PyGruenbeck API Response exception."""
+    """PyGruenbeck API Response Error exception."""
 
 
 class PyGruenbeckCloudResponseStatusError(Exception):
-    """PyGruenbeck API Response status exception."""
+    """PyGruenbeck API Response status Error exception."""
 
 
 class PyGruenbeckCloudConnectionError(Exception):
     """PyGruenbeck API Connection Error exception."""
-
-
-class PyGruenbeckCloudInvalidResponseStatus(Exception):
-    """PyGruenbeck API Incorrect response status code exception."""
 
 
 class PyGruenbeckCloudConnectionClosedError(Exception):

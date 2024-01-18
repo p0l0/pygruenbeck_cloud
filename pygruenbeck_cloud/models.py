@@ -1,10 +1,8 @@
-"""Models for pygruenbeck_cloud."""
+"""Models for Gruenbeck Cloud library."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 import datetime
-
-# from datetime import datetime, timedelta, timezone
 import keyword
 import logging
 import re
@@ -49,7 +47,7 @@ class DeviceError:
 
     @staticmethod
     def from_json(data: dict) -> DeviceError:
-        """Prepare values from dict."""
+        """Prepare values from json dict."""
         new_data = {}
         pattern = re.compile(r"(?<!^)(?=[A-Z])")  # camelCase to snake_case
         for key, value in data.items():
@@ -69,7 +67,7 @@ class DeviceError:
     def date(self, value: str) -> None:
         """Parse and set date as datetime from string value."""
         datetime_obj = datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f")
-        # Object seems to be UTC, so we need to set correct timezeon
+        # Object seems to be UTC, so we need to set correct timezone
         self._date = datetime_obj.replace(tzinfo=datetime.UTC)
 
 
@@ -97,7 +95,7 @@ class DeviceParameters:
     """Object holding Device Parameters."""
 
     # Common
-    dlst: bool  # pdlstauto -> automatic change summer/winter
+    dlst: bool  # pdlstauto -> Daylight saving time
 
     # Signals
     buzzer: bool  # pbuzzer -> signal on error
@@ -264,7 +262,7 @@ class Device:
 
     @staticmethod
     def from_json(data: dict) -> Device:
-        """Prepare values from dict."""
+        """Prepare values from json dict."""
         new_data = {}
         pattern = re.compile(r"(?<!^)(?=[A-Z])")  # camelCase to snake_case
         for key, value in data.items():
@@ -347,8 +345,8 @@ class Device:
         """Parse and set next regeneration as datetime from string value."""
         if isinstance(value, property):
             return
-        # Provided date is UTC, but format has no timezone information
         datetime_obj = datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
+        # Timezone for next regeneration comes from {time_zone} parameter
         if self.time_zone:
             datetime_obj = datetime_obj.replace(tzinfo=self.time_zone)
         self._next_regeneration = datetime_obj
@@ -388,6 +386,7 @@ class Device:
         if isinstance(value, property):
             return
         tzinfo = datetime.datetime.strptime(value, "%z").tzinfo
+        # Provided data for {next_regneration} has no timezone, this is provided here
         if self._next_regeneration:
             self._next_regeneration = self._next_regeneration.replace(tzinfo=tzinfo)
 

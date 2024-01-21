@@ -31,6 +31,7 @@ from yarl import URL
 
 from .const import (
     API_GET_MG_INFOS_ENDPOINT,
+    API_RETRY_INTERVAL,
     API_WS_CLIENT_HEADER,
     API_WS_CLIENT_QUERY,
     API_WS_CLIENT_URL,
@@ -55,7 +56,6 @@ from .const import (
     PARAM_NAME_TRANS_ID,
     PARAM_NAME_USERNAME,
     WEB_REQUESTS,
-    API_RETRY_INTERVAL,
 )
 from .exceptions import (
     PyGruenbeckCloudConnectionClosedError,
@@ -679,9 +679,9 @@ class PyGruenbeckCloud:
                         f" we expected {expected_status_code}."
                     )
                     self.logger.error(error)
-                    if (
-                        resp.status == aiohttp.http.HTTPStatus.TOO_MANY_REQUESTS
-                        or resp.status == aiohttp.http.HTTPStatus.INTERNAL_SERVER_ERROR
+                    if resp.status in (
+                        aiohttp.http.HTTPStatus.TOO_MANY_REQUESTS,
+                        aiohttp.http.HTTPStatus.INTERNAL_SERVER_ERROR,
                     ):
                         self.logger.debug(
                             "Waiting %s seconds, before trying request again",
@@ -697,8 +697,8 @@ class PyGruenbeckCloud:
                             allow_redirects=allow_redirects,
                             use_cookies=use_cookies,
                         )
-                    else:
-                        raise PyGruenbeckCloudResponseStatusError(error)
+
+                    raise PyGruenbeckCloudResponseStatusError(error)
                 try:
                     response = await resp.json()
                 except ContentTypeError:

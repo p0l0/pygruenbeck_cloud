@@ -43,6 +43,7 @@ API_GET_MG_INFOS_ENDPOINT: Final = ""  # Endpoint is empty for normal MG Infos
 API_GET_MG_INFOS_ENDPOINT_PARAMETERS: Final = "parameters"
 API_GET_MG_INFOS_ENDPOINT_SALT_MEASUREMENTS: Final = "measurements/salt"
 API_GET_MG_INFOS_ENDPOINT_WATER_MEASUREMENTS: Final = "measurements/water"
+API_RETRY_INTERVAL: Final = 360
 
 # WS API Details
 API_WS_SCHEME_HTTP: Final = "https"

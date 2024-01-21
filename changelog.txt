@@ -1,3 +1,6 @@
+Version 0.0.4 (2024-01-21)
+- Catch 429 "Too Many Requests" and 500 "Internal Server Errors", and retry reconnection automatically
+
 Version 0.0.3 (2024-01-18)
 - Fix error not updating current device on get_device_infos call
 

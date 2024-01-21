@@ -1,6 +1,7 @@
 """pygruenbeck_cloud is a Python library to communicate with the Grünbeck Cloud based Water softeners."""  # noqa: E501
 from __future__ import annotations
 
+import asyncio
 import base64
 from collections.abc import Callable
 from datetime import datetime
@@ -54,6 +55,7 @@ from .const import (
     PARAM_NAME_TRANS_ID,
     PARAM_NAME_USERNAME,
     WEB_REQUESTS,
+    API_RETRY_INTERVAL,
 )
 from .exceptions import (
     PyGruenbeckCloudConnectionClosedError,
@@ -677,7 +679,26 @@ class PyGruenbeckCloud:
                         f" we expected {expected_status_code}."
                     )
                     self.logger.error(error)
-                    raise PyGruenbeckCloudResponseStatusError(error)
+                    if (
+                        resp.status == aiohttp.http.HTTPStatus.TOO_MANY_REQUESTS
+                        or resp.status == aiohttp.http.HTTPStatus.INTERNAL_SERVER_ERROR
+                    ):
+                        self.logger.debug(
+                            "Waiting %s seconds, before trying request again",
+                            API_RETRY_INTERVAL,
+                        )
+                        await asyncio.sleep(API_RETRY_INTERVAL)
+                        return await self._http_request(
+                            headers=headers,
+                            url=url,
+                            data=data,
+                            expected_status_code=expected_status_code,
+                            method=method,
+                            allow_redirects=allow_redirects,
+                            use_cookies=use_cookies,
+                        )
+                    else:
+                        raise PyGruenbeckCloudResponseStatusError(error)
                 try:
                     response = await resp.json()
                 except ContentTypeError:

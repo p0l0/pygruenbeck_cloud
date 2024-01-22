@@ -36,7 +36,6 @@ from .const import (
     API_WS_HOST,
     API_WS_INITIAL_MESSAGE,
     API_WS_REQUEST_TIMEOUT,
-    API_WS_RESPONSE_TYPE_PING_COUNT,
     API_WS_SCHEME_WS,
     LOGIN_CODE_CHALLENGE_CHARS,
     PARAM_NAME_ACCESS_TOKEN,
@@ -677,6 +676,7 @@ class PyGruenbeckCloud:
                         f" we expected {expected_status_code}."
                     )
                     self.logger.error(error)
+
                     raise PyGruenbeckCloudResponseStatusError(error)
                 try:
                     response = await resp.json()
@@ -773,11 +773,6 @@ class PyGruenbeckCloud:
                     if response:
                         device = self.device.update_from_response(data=response)  # type: ignore[union-attr]  # noqa: E501
                         callback(device)
-
-                        # We need to refresh to get more Data if we got only PING
-                        # responses for {API_WS_RESPONSE_TYPE_PING_COUNT} times
-                        if device.ping_counter == API_WS_RESPONSE_TYPE_PING_COUNT:
-                            await self.refresh_sd()
                     else:
                         self.logger.debug("Skipping empty response: %s", response)
                 except JSONDecodeError:

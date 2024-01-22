@@ -66,9 +66,6 @@ API_WS_CLIENT_HEADER: dict[str, str] = {
 # There is a "%1E = Record Separator" char at the end of the string!
 API_WS_INITIAL_MESSAGE: Final = '{"protocol":"json","version":1}'
 API_WS_RESPONSE_TYPE_PING: Final = 6
-API_WS_RESPONSE_TYPE_PING_COUNT: Final = (
-    5  # If we get at least 5 PINGs in succession, we should refresh to get more data
-)
 API_WS_RESPONSE_TYPE_DATA: Final = 1
 API_WS_RESPONSE_TYPE_DATA_TARGETS: list[str] = [
     "SendOneTimeMessageToDevice",

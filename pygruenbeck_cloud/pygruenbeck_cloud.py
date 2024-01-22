@@ -1,7 +1,6 @@
 """pygruenbeck_cloud is a Python library to communicate with the Grünbeck Cloud based Water softeners."""  # noqa: E501
 from __future__ import annotations
 
-import asyncio
 import base64
 from collections.abc import Callable
 from datetime import datetime
@@ -31,14 +30,12 @@ from yarl import URL
 
 from .const import (
     API_GET_MG_INFOS_ENDPOINT,
-    API_RETRY_INTERVAL,
     API_WS_CLIENT_HEADER,
     API_WS_CLIENT_QUERY,
     API_WS_CLIENT_URL,
     API_WS_HOST,
     API_WS_INITIAL_MESSAGE,
     API_WS_REQUEST_TIMEOUT,
-    API_WS_RESPONSE_TYPE_PING_COUNT,
     API_WS_SCHEME_WS,
     LOGIN_CODE_CHALLENGE_CHARS,
     PARAM_NAME_ACCESS_TOKEN,
@@ -679,24 +676,6 @@ class PyGruenbeckCloud:
                         f" we expected {expected_status_code}."
                     )
                     self.logger.error(error)
-                    if resp.status in (
-                        aiohttp.http.HTTPStatus.TOO_MANY_REQUESTS,
-                        aiohttp.http.HTTPStatus.INTERNAL_SERVER_ERROR,
-                    ):
-                        self.logger.debug(
-                            "Waiting %s seconds, before trying request again",
-                            API_RETRY_INTERVAL,
-                        )
-                        await asyncio.sleep(API_RETRY_INTERVAL)
-                        return await self._http_request(
-                            headers=headers,
-                            url=url,
-                            data=data,
-                            expected_status_code=expected_status_code,
-                            method=method,
-                            allow_redirects=allow_redirects,
-                            use_cookies=use_cookies,
-                        )
 
                     raise PyGruenbeckCloudResponseStatusError(error)
                 try:
@@ -794,11 +773,6 @@ class PyGruenbeckCloud:
                     if response:
                         device = self.device.update_from_response(data=response)  # type: ignore[union-attr]  # noqa: E501
                         callback(device)
-
-                        # We need to refresh to get more Data if we got only PING
-                        # responses for {API_WS_RESPONSE_TYPE_PING_COUNT} times
-                        if device.ping_counter == API_WS_RESPONSE_TYPE_PING_COUNT:
-                            await self.refresh_sd()
                     else:
                         self.logger.debug("Skipping empty response: %s", response)
                 except JSONDecodeError:

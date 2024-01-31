@@ -1,5 +1,6 @@
 """Constants for the Gruenbeck Cloud library."""
 from datetime import timedelta
+import re
 from typing import Any, Final
 
 import aiohttp
@@ -26,6 +27,7 @@ PARAM_NAME_REFRESH_TOKEN: Final = "refresh_token"
 PARAM_NAME_CONNECTION_ID: Final = "connection_id"
 PARAM_NAME_DEVICE_ID: Final = "device_id"
 PARAM_NAME_ENDPOINT: Final = "endpoint"
+
 
 # Details needed for login
 LOGIN_SCHEME: Final = "https"
@@ -83,6 +85,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
         "method": aiohttp.hdrs.METH_GET,
         "use_cookies": True,
         "data": {},
+        "json_data": False,
         "query_params": {
             "x-client-Ver": "0.8.0",
             "state": "NjkyQjZBQTgtQkM1My00ODBDLTn3MkYtOTZCQ0QyQkQ2NEE5",
@@ -124,6 +127,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
             "signInName": f"{{{PARAM_NAME_USERNAME}}}",
             "password": f"{{{PARAM_NAME_PASSWORD}}}",
         },
+        "json_data": False,
         "query_params": {
             "tx": f"{{{PARAM_NAME_TRANS_ID}}}",
             "p": f"{{{PARAM_NAME_POLICY}}}",
@@ -144,6 +148,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
         "method": aiohttp.hdrs.METH_GET,
         "use_cookies": True,
         "data": {},
+        "json_data": False,
         "query_params": {
             "csrf_token": f"{{{PARAM_NAME_CSRF_TOKEN}}}",
             "tx": f"{{{PARAM_NAME_TRANS_ID}}}",
@@ -174,6 +179,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
             "redirect_uri": "msal5a83cc16-ffb1-42e9-9859-9fbf07f36df8://auth",
             "client_id": "5a83cc16-ffb1-42e9-9859-9fbf07f36df8",
         },
+        "json_data": False,
         "query_params": {},
         "headers": {
             "Host": "gruenbeckb2c.b2clogin.com",
@@ -207,6 +213,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
             "refresh_token": f"{{{PARAM_NAME_REFRESH_TOKEN}}}",
             "client_id": "5a83cc16-ffb1-42e9-9859-9fbf07f36df8",
         },
+        "json_data": False,
         "query_params": {},
         "headers": {
             "Host": "gruenbeckb2c.b2clogin.com",
@@ -232,6 +239,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
         "method": aiohttp.hdrs.METH_GET,
         "use_cookies": False,
         "data": {},
+        "json_data": False,
         "query_params": {},
         "headers": {
             "Content-Type": "text/plain;charset=UTF-8",
@@ -251,6 +259,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
         "method": aiohttp.hdrs.METH_POST,
         "use_cookies": False,
         "data": {},
+        "json_data": False,
         "query_params": {"hub": "gruenbeck"},
         "headers": {
             "Content-Type": "text/plain;charset=UTF-8",
@@ -269,6 +278,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
         "method": aiohttp.hdrs.METH_GET,
         "use_cookies": False,
         "data": {},
+        "json_data": False,
         "query_params": {
             "api-version": API_VERSION,
         },
@@ -288,6 +298,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
         "method": aiohttp.hdrs.METH_GET,
         "use_cookies": False,
         "data": {},
+        "json_data": False,
         "query_params": {
             "api-version": API_VERSION,
         },
@@ -307,6 +318,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
         "method": aiohttp.hdrs.METH_POST,
         "use_cookies": False,
         "data": {},
+        "json_data": False,
         "query_params": {
             "api-version": API_VERSION,
         },
@@ -325,6 +337,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
         "method": aiohttp.hdrs.METH_POST,
         "use_cookies": False,
         "data": {},
+        "json_data": False,
         "query_params": {
             "api-version": API_VERSION,
         },
@@ -343,11 +356,32 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
         "method": aiohttp.hdrs.METH_POST,
         "use_cookies": False,
         "data": {},
+        "json_data": False,
         "query_params": {
             "api-version": API_VERSION,
         },
         "headers": {
             "Host": "prod-eu-gruenbeck-api.azurewebsites.net",
+            "Accept": "application/json, text/plain, */*",
+            "User-Agent": USER_AGENT_APP,
+            "Accept-Language": "de-de",
+            "Authorization": f"Bearer {{{PARAM_NAME_ACCESS_TOKEN}}}",
+        },
+    },
+    "update_device_parameter": {
+        "scheme": API_SCHEME,
+        "host": API_HOST,
+        "path": f"/api/devices/{{{PARAM_NAME_DEVICE_ID}}}/parameters",
+        "method": aiohttp.hdrs.METH_PATCH,
+        "use_cookies": False,
+        "data": {},
+        "json_data": True,
+        "query_params": {
+            "api-version": API_VERSION,
+        },
+        "headers": {
+            "Host": "prod-eu-gruenbeck-api.azurewebsites.net",
+            "Content-Type": "application/json",
             "Accept": "application/json, text/plain, */*",
             "User-Agent": USER_AGENT_APP,
             "Accept-Language": "de-de",
@@ -361,24 +395,48 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
         "method": aiohttp.hdrs.METH_GET,
         "use_cookies": False,
         "data": {},
+        "json_data": False,
         "query_params": {},
         "headers": {},
     },
 }
-#
-#
-# LOGIN_STEPS: dict[int, str] = {
-#     0: "/a50d35c1-202f-4da7-aa87-76e51a3098c6/b2c_1a_signinup/oauth2/v2.0/authorize",
-#     1: f"{{{PARAM_NAME_TENANT}}}/SelfAsserted",
-#     2: f"{{{PARAM_NAME_TENANT}}}/api/CombinedSigninAndSignup/confirmed",
-#     3: f"{{{PARAM_NAME_TENANT}}}/oauth2/v2.0/token",
-# }
 
+# Diagnostic
+DIAGNOSTIC_REDACTED: Final = "**REDACTED**"
+DIAGNOSTIC_REGEX: list[dict[str, Any]] = [
+    {
+        "regex": re.compile(r"%3d([A-Za-z0-9_\-\.]+)(%26|\")"),
+        "index": 0,
+    },
+    {
+        "regex": re.compile(
+            r"(access_token|id_token|client_info|resource|refresh_token|id|serialNumber|accessToken|connectionId|pmailadress|pname|ptelnr)\":\s*\"([A-Za-z0-9_\-\.\/\s@+]+)\""  # noqa: E501
+        ),
+        "index": 1,
+    },
+    {
+        "regex": re.compile(r"Bearer ([A-Za-z0-9_\-\.]+)"),
+        "index": 0,
+    },
+]
 
-# HTTP_REQUEST_TIMEOUT: Final = 30
-# API_QUERY_PARAM_VERSION: Final = f"api-version={API_VERSION}"
-# API_GET_DEVICE_PATH: Final = "/api/devices"
-# API_GET_DEVICE_ENTER: Final = "/realtime/enter"
-# API_GET_DEVICE_REFRESH: Final = "/realtime/refresh"
-# API_GET_DEVICE_LEAVE: Final = "/realtime/leave"
-# API_GET_WS_NEGOTIATION: Final = "/api/realtime/negotiate"
+# Mapping of some Parameter from API
+OPERATION_MODES: Final = {
+    1: "Eco",
+    2: "Comfort",
+    3: "Power",
+    4: "Individual",
+}
+
+REGENERATION_MODES: Final = {
+    0: "Auto",
+    1: "Fixed",
+}
+
+WATER_UNITS: Final = {
+    1: "°dH",
+    2: "°fH",
+    3: "°e",
+    4: "mol/m³",
+    5: "ppm",
+}

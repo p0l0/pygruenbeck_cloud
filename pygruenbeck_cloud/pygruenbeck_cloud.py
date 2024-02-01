@@ -487,17 +487,18 @@ class PyGruenbeckCloud:
         """Return current device."""
         return self._device
 
-    async def set_device(self, device: Device) -> None:
+    async def set_device(self, device: Device, init: bool = True) -> None:
         """Async setter for device."""
         self._device = device
 
-        # Set logger for Device
-        self._device.logger = self.logger
-        try:
-            self._device = await self.get_device_infos()
-        except PyGruenbeckCloudResponseError as ex:
-            msg = "Unable to get device infos"
-            raise PyGruenbeckCloudError(msg) from ex
+        if init is True:
+            # Set logger for Device
+            self._device.logger = self.logger
+            try:
+                await self.get_device_infos()
+            except PyGruenbeckCloudResponseError as ex:
+                msg = "Unable to get device infos"
+                raise PyGruenbeckCloudError(msg) from ex
 
     async def set_device_from_id(self, device_id: str) -> bool:
         """Set device from given device ID."""
@@ -527,7 +528,10 @@ class PyGruenbeckCloud:
             msg = f"Got invalid device id {data.get('id')}, expected {self.device.id}"
             raise PyGruenbeckCloudResponseError(msg)
 
-        return self.device.update_from_dict(data)
+        # Update current device object
+        await self.set_device(self.device.update_from_dict(data), init=False)
+
+        return self.device
 
     async def get_device_infos_parameters(self) -> Device:
         """Retrieve parameters for device."""

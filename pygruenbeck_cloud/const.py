@@ -441,19 +441,19 @@ DIAGNOSTIC_REGEX: list[dict[str, Any]] = [
 ]
 
 # Mapping of some Parameter from API
-OPERATION_MODES: Final = {
+OPERATION_MODES: dict[int, str] = {
     1: "Eco",
     2: "Comfort",
     3: "Power",
     4: "Individual",
 }
 
-REGENERATION_MODES: Final = {
+REGENERATION_MODES: dict[int, str] = {
     0: "Auto",
     1: "Fixed",
 }
 
-WATER_UNITS: Final = {
+WATER_UNITS: dict[int, str] = {
     1: "°dH",
     2: "°fH",
     3: "°e",

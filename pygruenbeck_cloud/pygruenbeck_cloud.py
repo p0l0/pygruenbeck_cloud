@@ -33,6 +33,8 @@ from yarl import URL
 from .const import (
     API_GET_MG_INFOS_ENDPOINT,
     API_GET_MG_INFOS_ENDPOINT_PARAMETERS,
+    API_GET_MG_INFOS_ENDPOINT_SALT_MEASUREMENTS,
+    API_GET_MG_INFOS_ENDPOINT_WATER_MEASUREMENTS,
     API_WS_CLIENT_HEADER,
     API_WS_CLIENT_QUERY,
     API_WS_CLIENT_URL,
@@ -67,7 +69,7 @@ from .exceptions import (
     PyGruenbeckCloudResponseError,
     PyGruenbeckCloudResponseStatusError,
 )
-from .models import Device, DeviceParameters, GruenbeckAuthToken
+from .models import DailyUsageEntry, Device, DeviceParameters, GruenbeckAuthToken
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -517,6 +519,9 @@ class PyGruenbeckCloud:
         data = await self._get_device_infos_request(
             self.device, API_GET_MG_INFOS_ENDPOINT
         )
+        if not isinstance(data, dict):
+            msg = "Incorrect response for get_device_infos"
+            raise PyGruenbeckCloudResponseError(msg)
 
         if data.get("id") != self.device.id:
             msg = f"Got invalid device id {data.get('id')}, expected {self.device.id}"
@@ -533,10 +538,85 @@ class PyGruenbeckCloud:
         data = await self._get_device_infos_request(
             self.device, API_GET_MG_INFOS_ENDPOINT_PARAMETERS
         )
+        if not isinstance(data, dict):
+            msg = "Incorrect response for get_device_infos_parameters"
+            raise PyGruenbeckCloudResponseError(msg)
 
         self.device.parameters = DeviceParameters.from_dict(data)  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
 
         return self.device
+
+    async def get_device_salt_measurements(self) -> Device:
+        """Retrieve salt measurements for device."""
+        if self.device is None:
+            msg = "You need to select a device first"
+            raise PyGruenbeckCloudError(msg)
+
+        data = await self._get_device_infos_request(
+            self.device, API_GET_MG_INFOS_ENDPOINT_SALT_MEASUREMENTS
+        )
+        if not isinstance(data, list):
+            msg = "Incorrect response for get_device_salt_measurements"
+            raise PyGruenbeckCloudResponseError(msg)
+
+        self.device.salt = DailyUsageEntry.schema().load(data, many=True)  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
+
+        return self.device
+
+    async def get_device_water_measurements(self) -> Device:
+        """Retrieve water measurements for device."""
+        if self.device is None:
+            msg = "You need to select a device first"
+            raise PyGruenbeckCloudError(msg)
+
+        data = await self._get_device_infos_request(
+            self.device, API_GET_MG_INFOS_ENDPOINT_WATER_MEASUREMENTS
+        )
+        if not isinstance(data, list):
+            msg = "Incorrect response for get_device_water_measurements"
+            raise PyGruenbeckCloudResponseError(msg)
+
+        self.device.water = DailyUsageEntry.schema().load(data, many=True)  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
+
+        return self.device
+
+    async def _get_device_infos_request(
+        self, device: Device, endpoint: str = ""
+    ) -> Any:
+        """Get Device Infos from API."""
+        token = await self._get_web_access_token()
+
+        scheme = WEB_REQUESTS["get_device_infos_request"]["scheme"]
+        host = WEB_REQUESTS["get_device_infos_request"]["host"]
+        use_cookies = WEB_REQUESTS["get_device_infos_request"]["use_cookies"]
+
+        headers = self._placeholder_to_values_dict(
+            WEB_REQUESTS["get_device_infos_request"]["headers"],
+            {
+                PARAM_NAME_ACCESS_TOKEN: token,
+            },
+        )
+        path = self._placeholder_to_values_str(
+            WEB_REQUESTS["get_device_infos_request"]["path"],
+            {
+                PARAM_NAME_DEVICE_ID: device.id,
+                PARAM_NAME_ENDPOINT: endpoint,
+            },
+        )
+        method = WEB_REQUESTS["get_device_infos_request"]["method"]
+        data = WEB_REQUESTS["get_device_infos_request"]["data"]
+        query = WEB_REQUESTS["get_device_infos_request"]["query_params"]
+
+        url = URL.build(scheme=scheme, host=host, path=path, query=query)
+        response = await self._http_request(
+            url=url,
+            headers=headers,
+            method=method,
+            data=data,
+            use_cookies=use_cookies,
+        )
+
+        return response
 
     async def update_device_infos_parameters(
         self,
@@ -601,56 +681,47 @@ class PyGruenbeckCloud:
 
         return self.device
 
-    # async def get_device_infos_salt_measurements(self, device: Device):
-    #     data = await self._get_device_infos_request(
-    #         device, API_GET_MG_INFOS_ENDPOINT_SALT_MEASUREMENTS
-    #     )
-    #
-    # async def get_device_infos_water_measurements(self, device: Device):
-    #     data = await self._get_device_infos_request(
-    #         device, API_GET_MG_INFOS_ENDPOINT_WATER_MEASUREMENTS
-    #     )
+    async def regenerate(
+        self,
+    ) -> Device:
+        """Start regeneration."""
+        if self.device is None:
+            msg = "You need to select a device first"
+            raise PyGruenbeckCloudError(msg)
 
-    async def _get_device_infos_request(
-        self, device: Device, endpoint: str = ""
-    ) -> dict[str, str]:
-        """Get Device Infos from API."""
         token = await self._get_web_access_token()
 
-        scheme = WEB_REQUESTS["get_device_infos_request"]["scheme"]
-        host = WEB_REQUESTS["get_device_infos_request"]["host"]
-        use_cookies = WEB_REQUESTS["get_device_infos_request"]["use_cookies"]
+        scheme = WEB_REQUESTS["regenerate"]["scheme"]
+        host = WEB_REQUESTS["regenerate"]["host"]
+        use_cookies = WEB_REQUESTS["regenerate"]["use_cookies"]
 
         headers = self._placeholder_to_values_dict(
-            WEB_REQUESTS["get_device_infos_request"]["headers"],
+            WEB_REQUESTS["regenerate"]["headers"],
             {
                 PARAM_NAME_ACCESS_TOKEN: token,
             },
         )
         path = self._placeholder_to_values_str(
-            WEB_REQUESTS["get_device_infos_request"]["path"],
+            WEB_REQUESTS["regenerate"]["path"],
             {
-                PARAM_NAME_DEVICE_ID: device.id,
-                PARAM_NAME_ENDPOINT: endpoint,
+                PARAM_NAME_DEVICE_ID: self.device.id,
             },
         )
-        method = WEB_REQUESTS["get_device_infos_request"]["method"]
-        data = WEB_REQUESTS["get_device_infos_request"]["data"]
-        query = WEB_REQUESTS["get_device_infos_request"]["query_params"]
+        method = WEB_REQUESTS["regenerate"]["method"]
+        data = WEB_REQUESTS["regenerate"]["data"]
+        query = WEB_REQUESTS["regenerate"]["query_params"]
 
         url = URL.build(scheme=scheme, host=host, path=path, query=query)
-        response = await self._http_request(
+        await self._http_request(
             url=url,
             headers=headers,
             method=method,
-            data=data,
+            json_data=data,
             use_cookies=use_cookies,
+            expected_status_code=202,
         )
-        if not isinstance(response, dict):
-            msg = f"Incorrect response from {url}"
-            raise PyGruenbeckCloudResponseError(msg)
 
-        return response
+        return self.device
 
     async def enter_sd(
         self,
@@ -797,21 +868,10 @@ class PyGruenbeckCloud:
                 data=data,
                 json=json_data,
             ) as resp:
-                if resp.status != expected_status_code:
-                    error = (
-                        f"Response status code for {url} is {resp.status},"
-                        f" we expected {expected_status_code}."
-                    )
-                    self.logger.error(error)
-
-                    raise PyGruenbeckCloudResponseStatusError(error)
                 try:
                     response = await resp.json()
                 except ContentTypeError:
                     response = await resp.text()
-
-                if use_cookies:
-                    self.session.cookie_jar.update_cookies(resp.cookies)
 
                 self.logger.debug(
                     "Response from URL %s with status %d was %s",
@@ -838,6 +898,18 @@ class PyGruenbeckCloud:
                 ):
                     msg = f"Response from URL {url} has incorrect type {type(response)}"
                     raise PyGruenbeckCloudResponseError(msg)
+
+                if resp.status != expected_status_code:
+                    error = (
+                        f"Response status code for {url} is {resp.status},"
+                        f" we expected {expected_status_code}."
+                    )
+                    self.logger.error(error)
+
+                    raise PyGruenbeckCloudResponseStatusError(error)
+
+                if use_cookies:
+                    self.session.cookie_jar.update_cookies(resp.cookies)
 
                 return response
         except (ClientConnectorError, ServerDisconnectedError) as ex:

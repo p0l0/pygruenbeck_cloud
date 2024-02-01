@@ -388,6 +388,26 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
             "Authorization": f"Bearer {{{PARAM_NAME_ACCESS_TOKEN}}}",
         },
     },
+    "regenerate": {
+        "scheme": API_SCHEME,
+        "host": API_HOST,
+        "path": f"/api/devices/{{{PARAM_NAME_DEVICE_ID}}}/regenerate",
+        "method": aiohttp.hdrs.METH_POST,
+        "use_cookies": False,
+        "data": {},
+        "json_data": True,
+        "query_params": {
+            "api-version": API_VERSION,
+        },
+        "headers": {
+            "Host": "prod-eu-gruenbeck-api.azurewebsites.net",
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/plain, */*",
+            "User-Agent": USER_AGENT_APP,
+            "Accept-Language": "de-de",
+            "Authorization": f"Bearer {{{PARAM_NAME_ACCESS_TOKEN}}}",
+        },
+    },
     "placeholder": {
         "scheme": LOGIN_SCHEME,
         "host": LOGIN_HOST,

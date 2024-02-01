@@ -345,6 +345,21 @@ class DeviceRealtimeInfo:
         default=None,
         metadata=json_config(field_name="mmaint"),
     )
+    # @TODO - This two parameter provide information about running regeneration
+    #   if both have value 0 when no regeneration is running.
+    #   Current observations:
+    #   mremregstep -> on regeneration start it seems to increase from 0 it seems to
+    #       increase slowly up to 1,5 and then it changes with a big step to > 4400
+    #   mregstatus -> when mremregstep is between 0 and 1,5, mremregstep has the
+    #       value 10 as soon as mremregstep is > 4400 then it changes to 20
+    #       on mremregstep ~= 300 it changes to 30 and when < 10 it changes to 40
+    mremregstep: float | None = field(
+        default=None, metadata=json_config(field_name="mremregstep")
+    )
+    mregstatus: int | None = field(
+        default=None,
+        metadata=json_config(field_name="mregstatus"),
+    )
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)

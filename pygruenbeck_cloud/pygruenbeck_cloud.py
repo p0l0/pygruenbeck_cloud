@@ -631,7 +631,19 @@ class PyGruenbeckCloud:
         parameters = dataclasses.replace(self.device.parameters)
         for key, value in data.items():
             if hasattr(parameters, key):
-                setattr(parameters, key, value)
+                new_value = value
+                # JSON must contain the right data type
+                if not isinstance(getattr(parameters, key), type(new_value)):
+                    data_type = type(getattr(parameters, key))
+                    if data_type == int:
+                        new_value = int(value)
+                    elif data_type == float:
+                        new_value = float(value)
+                    elif data_type == bool:
+                        new_value = bool(value)
+                    elif data_type == datetime.time:
+                        new_value = datetime.strptime(data[key], "%H:%M").time()
+                setattr(parameters, key, new_value)
 
         # Create dict with right JSON Keys
         changed_data = dict(

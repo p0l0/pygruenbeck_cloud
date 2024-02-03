@@ -1,3 +1,2 @@
-- Implement 'pushMgParameter' function from ioBroker
 - Check which functionality from 'onStateChange' is useful for Cloud
 - Check how ioBroker calculates the usage of Salt!

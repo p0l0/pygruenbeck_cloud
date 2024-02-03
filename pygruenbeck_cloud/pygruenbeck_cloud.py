@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import base64
+from collections import deque
 from collections.abc import Callable
+import dataclasses
 from datetime import datetime
 import hashlib
 import json
@@ -30,6 +32,9 @@ from yarl import URL
 
 from .const import (
     API_GET_MG_INFOS_ENDPOINT,
+    API_GET_MG_INFOS_ENDPOINT_PARAMETERS,
+    API_GET_MG_INFOS_ENDPOINT_SALT_MEASUREMENTS,
+    API_GET_MG_INFOS_ENDPOINT_WATER_MEASUREMENTS,
     API_WS_CLIENT_HEADER,
     API_WS_CLIENT_QUERY,
     API_WS_CLIENT_URL,
@@ -37,6 +42,8 @@ from .const import (
     API_WS_INITIAL_MESSAGE,
     API_WS_REQUEST_TIMEOUT,
     API_WS_SCHEME_WS,
+    DIAGNOSTIC_REDACTED,
+    DIAGNOSTIC_REGEX,
     LOGIN_CODE_CHALLENGE_CHARS,
     PARAM_NAME_ACCESS_TOKEN,
     PARAM_NAME_CODE,
@@ -62,7 +69,7 @@ from .exceptions import (
     PyGruenbeckCloudResponseError,
     PyGruenbeckCloudResponseStatusError,
 )
-from .models import Device, GruenbeckAuthToken
+from .models import DailyUsageEntry, Device, DeviceParameters, GruenbeckAuthToken
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -82,6 +89,9 @@ class PyGruenbeckCloud:
         """Initialize PyGruenbeckCloud Class."""
         self._username = username
         self._password = password
+
+        # Last responses
+        self._response_log: deque = deque(maxlen=25)
 
     @staticmethod
     def _placeholder_to_values_dict(
@@ -131,6 +141,55 @@ class PyGruenbeckCloud:
             challenge_hash = base64.b64encode(hash_object.digest()).decode()[:-1]
 
         return [result, challenge_hash]
+
+    async def get_diagnostics(self) -> list[dict[str, Any]]:
+        """Return a dict with diagnostic information for debugging purposes."""
+        result = []
+
+        def _filter(str_value: str) -> str:
+            # Replace serial_number
+            if (
+                isinstance(self.device, Device)
+                and self.device.serial_number is not None
+            ):
+                str_value = str_value.replace(
+                    self.device.serial_number, DIAGNOSTIC_REDACTED
+                )
+
+            for regex in DIAGNOSTIC_REGEX:
+                index = regex["index"]
+                for match in regex["regex"].findall(str_value):
+                    if isinstance(match, tuple):
+                        str_value = str_value.replace(match[index], DIAGNOSTIC_REDACTED)
+                    else:
+                        str_value = str_value.replace(match, DIAGNOSTIC_REDACTED)
+
+            return str_value
+
+        # We need to remove data for privacy reasons!
+        for entry in self._response_log:
+            new_entry = {}
+            for key, value in entry.items():
+                if isinstance(value, str):
+                    new_entry[key] = _filter(value)
+                elif isinstance(value, dict):
+                    new_entry[key] = {}  # type: ignore[assignment]
+                    for sub_key, sub_value in value.items():
+                        # Replace PARAM_NAME_USERNAME and PARAM_NAME_PASSWORD !!
+                        if sub_key in (PARAM_NAME_USERNAME, PARAM_NAME_PASSWORD):
+                            new_entry[key][sub_key] = DIAGNOSTIC_REDACTED  # type: ignore[index]  # noqa: E501
+                        else:
+                            new_entry[key][sub_key] = _filter(sub_value)  # type: ignore[index]  # noqa: E501
+                else:
+                    new_entry[key] = value
+
+                # We encode responses to base64 to reduce size
+                if key == "response":
+                    new_entry[key] = base64.b64encode(new_entry[key].encode("utf-8"))  # type: ignore[assignment]  # noqa: E501
+
+            result.append(new_entry)
+
+        return result
 
     async def login(self) -> bool:
         """Login to Grünbeck Cloud."""
@@ -419,7 +478,7 @@ class PyGruenbeckCloud:
 
         for device in response:
             if "soft" in device["id"]:
-                devices.append(Device.from_json(device))
+                devices.append(Device.from_dict(device))  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
 
         return devices
 
@@ -428,17 +487,18 @@ class PyGruenbeckCloud:
         """Return current device."""
         return self._device
 
-    async def set_device(self, device: Device) -> None:
+    async def set_device(self, device: Device, init: bool = True) -> None:
         """Async setter for device."""
         self._device = device
 
-        # Set logger for Device
-        self._device.logger = self.logger
-        try:
-            self._device = await self.get_device_infos()
-        except PyGruenbeckCloudResponseError as ex:
-            msg = "Unable to get device infos"
-            raise PyGruenbeckCloudError(msg) from ex
+        if init is True:
+            # Set logger for Device
+            self._device.logger = self.logger
+            try:
+                await self.get_device_infos()
+            except PyGruenbeckCloudResponseError as ex:
+                msg = "Unable to get device infos"
+                raise PyGruenbeckCloudError(msg) from ex
 
     async def set_device_from_id(self, device_id: str) -> bool:
         """Set device from given device ID."""
@@ -460,32 +520,73 @@ class PyGruenbeckCloud:
         data = await self._get_device_infos_request(
             self.device, API_GET_MG_INFOS_ENDPOINT
         )
+        if not isinstance(data, dict):
+            msg = "Incorrect response for get_device_infos"
+            raise PyGruenbeckCloudResponseError(msg)
 
         if data.get("id") != self.device.id:
             msg = f"Got invalid device id {data.get('id')}, expected {self.device.id}"
             raise PyGruenbeckCloudResponseError(msg)
 
-        return self.device.update_from_json(data)
+        # Update current device object
+        await self.set_device(self.device.update_from_dict(data), init=False)
 
-    #
-    # async def get_device_infos_parameters(self, device: Device):
-    #     data = await self._get_device_infos_request(
-    #         device, API_GET_MG_INFOS_ENDPOINT_PARAMETERS
-    #     )
-    #
-    # async def get_device_infos_salt_measurements(self, device: Device):
-    #     data = await self._get_device_infos_request(
-    #         device, API_GET_MG_INFOS_ENDPOINT_SALT_MEASUREMENTS
-    #     )
-    #
-    # async def get_device_infos_water_measurements(self, device: Device):
-    #     data = await self._get_device_infos_request(
-    #         device, API_GET_MG_INFOS_ENDPOINT_WATER_MEASUREMENTS
-    #     )
+        return self.device
+
+    async def get_device_infos_parameters(self) -> Device:
+        """Retrieve parameters for device."""
+        if self.device is None:
+            msg = "You need to select a device first"
+            raise PyGruenbeckCloudError(msg)
+
+        data = await self._get_device_infos_request(
+            self.device, API_GET_MG_INFOS_ENDPOINT_PARAMETERS
+        )
+        if not isinstance(data, dict):
+            msg = "Incorrect response for get_device_infos_parameters"
+            raise PyGruenbeckCloudResponseError(msg)
+
+        self.device.parameters = DeviceParameters.from_dict(data)  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
+
+        return self.device
+
+    async def get_device_salt_measurements(self) -> Device:
+        """Retrieve salt measurements for device."""
+        if self.device is None:
+            msg = "You need to select a device first"
+            raise PyGruenbeckCloudError(msg)
+
+        data = await self._get_device_infos_request(
+            self.device, API_GET_MG_INFOS_ENDPOINT_SALT_MEASUREMENTS
+        )
+        if not isinstance(data, list):
+            msg = "Incorrect response for get_device_salt_measurements"
+            raise PyGruenbeckCloudResponseError(msg)
+
+        self.device.salt = DailyUsageEntry.schema().load(data, many=True)  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
+
+        return self.device
+
+    async def get_device_water_measurements(self) -> Device:
+        """Retrieve water measurements for device."""
+        if self.device is None:
+            msg = "You need to select a device first"
+            raise PyGruenbeckCloudError(msg)
+
+        data = await self._get_device_infos_request(
+            self.device, API_GET_MG_INFOS_ENDPOINT_WATER_MEASUREMENTS
+        )
+        if not isinstance(data, list):
+            msg = "Incorrect response for get_device_water_measurements"
+            raise PyGruenbeckCloudResponseError(msg)
+
+        self.device.water = DailyUsageEntry.schema().load(data, many=True)  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
+
+        return self.device
 
     async def _get_device_infos_request(
         self, device: Device, endpoint: str = ""
-    ) -> dict[str, str]:
+    ) -> Any:
         """Get Device Infos from API."""
         token = await self._get_web_access_token()
 
@@ -518,11 +619,125 @@ class PyGruenbeckCloud:
             data=data,
             use_cookies=use_cookies,
         )
+
+        return response
+
+    async def update_device_infos_parameters(
+        self,
+        data: dict[str, Any],
+    ) -> Device:
+        """Update device parameters."""
+        if self.device is None:
+            msg = "You need to select a device first"
+            raise PyGruenbeckCloudError(msg)
+
+        # We need a copy to have only changed parameter
+        parameters = dataclasses.replace(self.device.parameters)
+        for key, value in data.items():
+            if hasattr(parameters, key):
+                new_value = value
+                # JSON must contain the right data type
+                if not isinstance(getattr(parameters, key), type(new_value)):
+                    data_type = type(getattr(parameters, key))
+                    if data_type == int:
+                        new_value = int(value)
+                    elif data_type == float:
+                        new_value = float(value)
+                    elif data_type == bool:
+                        new_value = bool(value)
+                    elif data_type == datetime.time:
+                        new_value = datetime.strptime(data[key], "%H:%M").time()
+                setattr(parameters, key, new_value)
+
+        # Create dict with right JSON Keys
+        changed_data = dict(
+            set(parameters.to_dict().items())  # type: ignore[attr-defined]
+            ^ set(self.device.parameters.to_dict().items())  # type: ignore[attr-defined]  # noqa: E501
+        )
+
+        if not changed_data:
+            self.logger.warning("No changes detected in provided parameters")
+            return self.device
+
+        token = await self._get_web_access_token()
+
+        scheme = WEB_REQUESTS["update_device_parameter"]["scheme"]
+        host = WEB_REQUESTS["update_device_parameter"]["host"]
+        use_cookies = WEB_REQUESTS["update_device_parameter"]["use_cookies"]
+
+        headers = self._placeholder_to_values_dict(
+            WEB_REQUESTS["update_device_parameter"]["headers"],
+            {
+                PARAM_NAME_ACCESS_TOKEN: token,
+            },
+        )
+        path = self._placeholder_to_values_str(
+            WEB_REQUESTS["update_device_parameter"]["path"],
+            {
+                PARAM_NAME_DEVICE_ID: self.device.id,
+            },
+        )
+        method = WEB_REQUESTS["update_device_parameter"]["method"]
+        query = WEB_REQUESTS["update_device_parameter"]["query_params"]
+
+        url = URL.build(scheme=scheme, host=host, path=path, query=query)
+        response = await self._http_request(
+            url=url,
+            headers=headers,
+            method=method,
+            json_data=changed_data,
+            use_cookies=use_cookies,
+        )
         if not isinstance(response, dict):
             msg = f"Incorrect response from {url}"
             raise PyGruenbeckCloudResponseError(msg)
 
-        return response
+        # Update current device parameters
+        self.device.parameters = DeviceParameters.from_dict(response)  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
+
+        return self.device
+
+    async def regenerate(
+        self,
+    ) -> Device:
+        """Start regeneration."""
+        if self.device is None:
+            msg = "You need to select a device first"
+            raise PyGruenbeckCloudError(msg)
+
+        token = await self._get_web_access_token()
+
+        scheme = WEB_REQUESTS["regenerate"]["scheme"]
+        host = WEB_REQUESTS["regenerate"]["host"]
+        use_cookies = WEB_REQUESTS["regenerate"]["use_cookies"]
+
+        headers = self._placeholder_to_values_dict(
+            WEB_REQUESTS["regenerate"]["headers"],
+            {
+                PARAM_NAME_ACCESS_TOKEN: token,
+            },
+        )
+        path = self._placeholder_to_values_str(
+            WEB_REQUESTS["regenerate"]["path"],
+            {
+                PARAM_NAME_DEVICE_ID: self.device.id,
+            },
+        )
+        method = WEB_REQUESTS["regenerate"]["method"]
+        data = WEB_REQUESTS["regenerate"]["data"]
+        query = WEB_REQUESTS["regenerate"]["query_params"]
+
+        url = URL.build(scheme=scheme, host=host, path=path, query=query)
+        await self._http_request(
+            url=url,
+            headers=headers,
+            method=method,
+            json_data=data,
+            use_cookies=use_cookies,
+            expected_status_code=202,
+        )
+
+        return self.device
 
     async def enter_sd(
         self,
@@ -604,9 +819,6 @@ class PyGruenbeckCloud:
             use_cookies=use_cookies,
         )
 
-        # Reset ping counter after refreshing
-        self.device.ping_counter = 0
-
     async def leave_sd(self) -> None:
         """Send leave SD for WS."""
         if self.device is None:
@@ -651,6 +863,7 @@ class PyGruenbeckCloud:
         headers: dict,
         url: StrOrURL,
         data: Any = None,
+        json_data: Any = None,
         expected_status_code: int = aiohttp.http.HTTPStatus.OK,
         method: str = aiohttp.hdrs.METH_GET,
         allow_redirects: bool = False,
@@ -669,28 +882,29 @@ class PyGruenbeckCloud:
                 headers=headers,
                 allow_redirects=allow_redirects,
                 data=data,
+                json=json_data,
             ) as resp:
-                if resp.status != expected_status_code:
-                    error = (
-                        f"Response status code for {url} is {resp.status},"
-                        f" we expected {expected_status_code}."
-                    )
-                    self.logger.error(error)
-
-                    raise PyGruenbeckCloudResponseStatusError(error)
                 try:
                     response = await resp.json()
                 except ContentTypeError:
                     response = await resp.text()
-
-                if use_cookies:
-                    self.session.cookie_jar.update_cookies(resp.cookies)
 
                 self.logger.debug(
                     "Response from URL %s with status %d was %s",
                     url,
                     resp.status,
                     response,
+                )
+
+                self._response_log.append(
+                    {
+                        "url": str(url),
+                        "req_headers": headers,
+                        "red_data": data,
+                        "resp_headers": resp.headers,
+                        "resp_status": str(resp.status),
+                        "response": str(await resp.text()),
+                    }
                 )
 
                 if (
@@ -700,6 +914,18 @@ class PyGruenbeckCloud:
                 ):
                     msg = f"Response from URL {url} has incorrect type {type(response)}"
                     raise PyGruenbeckCloudResponseError(msg)
+
+                if resp.status != expected_status_code:
+                    error = (
+                        f"Response status code for {url} is {resp.status},"
+                        f" we expected {expected_status_code}."
+                    )
+                    self.logger.error(error)
+
+                    raise PyGruenbeckCloudResponseStatusError(error)
+
+                if use_cookies:
+                    self.session.cookie_jar.update_cookies(resp.cookies)
 
                 return response
         except (ClientConnectorError, ServerDisconnectedError) as ex:
@@ -761,6 +987,14 @@ class PyGruenbeckCloud:
         while not self._ws_client.closed:
             ws_msg = await self._ws_client.receive()
             self.logger.debug("WebSocket Message received: %s", ws_msg.data)
+            self._response_log.append(
+                {
+                    "ws_tye": str(ws_msg.type),
+                    "ws_data": str(
+                        ws_msg.data,
+                    ),
+                }
+            )
 
             if ws_msg.type == WSMsgType.ERROR:
                 raise PyGruenbeckCloudConnectionError(self._ws_client.exception())

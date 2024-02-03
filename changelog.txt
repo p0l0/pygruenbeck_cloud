@@ -1,3 +1,10 @@
+Version 0.1.0 (2024-02-03)
+- Implemented mapping for Operation Modes
+- Use of dataclasses_json to handle responses easier
+- Implemented Device Parameters and method to change them
+- Implemented method to get Salt and Water measurements
+- Added possibility to get Diagnostics dump
+
 Version 0.0.4 (2024-01-22)
 - Avoid sending too many requests and hitting 429/500 Errors
 

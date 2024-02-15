@@ -449,7 +449,7 @@ OPERATION_MODES: dict[int, str] = {
 }
 
 REGENERATION_MODES: dict[int, str] = {
-    0: "Auto",
+    0: "Automatic",
     1: "Fixed",
 }
 
@@ -459,4 +459,33 @@ WATER_UNITS: dict[int, str] = {
     3: "°e",
     4: "mol/m³",
     5: "ppm",
+}
+
+REGENERATION_STATUS: dict[int, str] = {
+    0: "Inactive",
+    10: "Fill salt tank",
+    20: "Salting",
+    30: "Displacement",
+    40: "Backwashing",
+    50: "Backwashing",
+    60: "Washing out",
+}
+
+LANGUAGES: dict[int, str] = {
+    1: "German",
+    2: "English",
+    3: "French",
+    4: "Italian",
+    5: "Dutch",
+    6: "Spanish",
+    7: "Russian",
+    9: "Danish",
+}
+
+LED_MODES: dict[int, str] = {
+    0: "Deactivated",
+    1: "Permanent lightning",
+    2: "In case of failure",
+    3: "In case of operation by user + failure",
+    4: "In case of water treatment + operation by user + failure",
 }

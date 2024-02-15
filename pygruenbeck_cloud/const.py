@@ -441,19 +441,19 @@ DIAGNOSTIC_REGEX: list[dict[str, Any]] = [
 ]
 
 # Mapping of some Parameter from API
-OPERATION_MODES: dict[int, str] = {
+PARAMETER_OPERATION_MODES: dict[int, str] = {
     1: "Eco",
     2: "Comfort",
     3: "Power",
     4: "Individual",
 }
 
-REGENERATION_MODES: dict[int, str] = {
+PARAMETER_REGENERATION_MODES: dict[int, str] = {
     0: "Automatic",
     1: "Fixed",
 }
 
-WATER_UNITS: dict[int, str] = {
+PARAMETER_WATER_UNITS: dict[int, str] = {
     1: "°dH",
     2: "°fH",
     3: "°e",
@@ -461,7 +461,7 @@ WATER_UNITS: dict[int, str] = {
     5: "ppm",
 }
 
-REGENERATION_STATUS: dict[int, str] = {
+PARAMETER_REGENERATION_STATUS: dict[int, str] = {
     0: "Inactive",
     10: "Fill salt tank",
     20: "Salting",
@@ -471,7 +471,7 @@ REGENERATION_STATUS: dict[int, str] = {
     60: "Washing out",
 }
 
-LANGUAGES: dict[int, str] = {
+PARAMETER_LANGUAGES: dict[int, str] = {
     1: "German",
     2: "English",
     3: "French",
@@ -482,7 +482,7 @@ LANGUAGES: dict[int, str] = {
     9: "Danish",
 }
 
-LED_MODES: dict[int, str] = {
+PARAMETER_LED_MODES: dict[int, str] = {
     0: "Deactivated",
     1: "Permanent lightning",
     2: "In case of failure",

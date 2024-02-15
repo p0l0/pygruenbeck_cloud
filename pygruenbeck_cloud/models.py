@@ -79,15 +79,17 @@ class DeviceParameters:
         metadata=json_config(field_name="pdlstauto"),
     )
 
-    # Signal on error
+    # Audio signal on error
     buzzer: bool | None = field(
         default=None,
         metadata=json_config(field_name="pbuzzer"),
     )
+    # Audio signal release from [hh:mm]
     buzzer_from: datetime.time | None = field(
         default=None,
         metadata=json_config(field_name="pbuzzfrom"),
     )
+    # Audio signal release until [hh:mm]
     buzzer_to: datetime.time | None = field(
         default=None,
         metadata=json_config(field_name="pbuzzto"),
@@ -103,7 +105,7 @@ class DeviceParameters:
         metadata=json_config(field_name="pallowemail"),
     )
 
-    # Water
+    # Water settings
     water_hardness_unit: int | None = field(
         default=None,
         metadata=json_config(field_name="phunit"),
@@ -117,7 +119,7 @@ class DeviceParameters:
         metadata=json_config(field_name="psetsoft"),
     )
 
-    # Mode
+    # Working mode
     mode: int | None = field(
         default=None,
         metadata=json_config(field_name="pmode"),
@@ -151,7 +153,7 @@ class DeviceParameters:
         metadata=json_config(field_name="pmodesu"),
     )
 
-    # Regeneration
+    # Regeneration mode
     regeneration_mode: int | None = field(
         default=None,
         metadata=json_config(field_name="pregmode"),
@@ -241,11 +243,12 @@ class DeviceParameters:
         metadata=json_config(field_name="pregsu3"),
     )  # datetime.time | None = None
 
-    # Maintenance Information
+    # Maintenance information [days]
     maintenance_interval: int | None = field(
         default=None,
         metadata=json_config(field_name="pmaintint"),
     )
+    # Installer information
     installer_name: str | None = field(
         default=None,
         metadata=json_config(field_name="pname"),
@@ -259,53 +262,270 @@ class DeviceParameters:
         metadata=json_config(field_name="pmailadress"),
     )
 
-    # Additional unknown parameter
-    pntpsync: bool | None = None
-    pcfcontact: bool | None = None
-    pknx: bool | None = None
-    pmonflow: bool | None = None
-    pmondisinf: bool | None = None
-    pledatsaltpre: bool | None = None
-    prescaplimit: int | None = None
-    pcurrent: int | None = None
-    pload: int | None = None
-    pforcedregdist: int | None = None
-    pfreqregvalve: int | None = None
-    pfreqblendvalve: int | None = None
-    pledbright: int | None = None
-    pvolume: int | None = None
-    ppratesoftwater: float | None = None
-    pprateblending: float | None = None
-    pprateregwater: float | None = None
-    psetcapmo: int | None = None
-    psetcaptu: int | None = None
-    psetcapwe: int | None = None
-    psetcapth: int | None = None
-    psetcapfr: int | None = None
-    psetcapsa: int | None = None
-    psetcapsu: int | None = None
-    pnomflow: float | None = None
-    ppressurereg: int | None = None
-    pmonregmeter: int | None = None
-    pmonsalting: int | None = None
-    prinsing: float | None = None
-    pbackwash: int | None = None
-    pwashingout: int | None = None
-    pminvolmincap: float | None = None
-    pmaxvolmincap: float | None = None
-    pminvolmaxcap: float | None = None
-    pmaxvolmaxcap: float | None = None
-    pmaxdurdisinfect: int | None = None
-    pmaxresdurreg: int | None = None
-    planguage: int | None = None
-    pprogout: int | None = None
-    pprogin: int | None = None
-    ppowerfail: int | None = None
-    pmodedesinf: int | None = None
-    pled: int | None = None
-    pmonblend: int | None = None
-    poverload: int | None = None
-    pfreqregvalve2: int | None = None
+    # Get date/time automatically (NTP)
+    ntp_sync: bool | None = field(
+        default=None,
+        metadata=json_config(field_name="pntpsync"),
+    )
+
+    # Function fault signal contact
+    fault_signal_contact: bool | None = field(
+        default=None,
+        metadata=json_config(field_name="pcfcontact"),
+    )
+
+    # KNX connection
+    knx: bool | None = field(
+        default=None,
+        metadata=json_config(field_name="pknx"),
+    )
+
+    # Monitoring of nominal flow
+    nominal_flow_monitoring: bool | None = field(
+        default=None,
+        metadata=json_config(field_name="pmonflow"),
+    )
+
+    # Disinfection monitoring
+    disinfection_monitoring: bool | None = field(
+        default=None,
+        metadata=json_config(field_name="pmondisinf"),
+    )
+
+    # Illuminated LED ring mode
+    led_ring_mode: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pled"),
+    )
+    # Illuminated LED ring flashes for pre-alarm salt supply
+    led_ring_flash_on_signal: bool | None = field(
+        default=None,
+        metadata=json_config(field_name="pledatsaltpre"),
+    )
+    # LED ring Brightness [%]
+    led_ring_brightness: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pledbright"),
+    )
+
+    # Residual capacity limit value [%]
+    residual_capacity_limit: int | None = field(
+        default=None,
+        metadata=json_config(field_name="prescaplimit"),
+    )
+
+    # Current setpoint [mA]
+    current_setpoint: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pcurrent"),
+    )
+
+    # Charge [mAmin]
+    charge: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pload"),
+    )
+
+    # Interval of forced regeneration [days]
+    interval_forced_regeneration: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pforcedregdist"),
+    )
+
+    # End frequency regeneration valve [Hz]
+    end_frequency_regeneration_valve: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pfreqregvalve"),
+    )
+    # End frequency regeneration valve 2 [Hz]
+    end_frequency_regeneration_valve_2: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pfreqregvalve2"),
+    )
+
+    # End frequency blending valve [Hz]
+    end_frequency_blending_valve: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pfreqblendvalve"),
+    )
+
+    # Treatment volume [m³]
+    treatment_volume: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pvolume"),
+    )
+
+    # Soft water meter pulse rate [l/Imp]
+    soft_water_meter_pulse_rate: float | None = field(
+        default=None,
+        metadata=json_config(field_name="ppratesoftwater"),
+    )
+
+    # Blending water meter pulse rate [l/Imp]
+    blending_water_meter_pulse_rate: float | None = field(
+        default=None,
+        metadata=json_config(field_name="pprateblending"),
+    )
+
+    # Regeneration water meter pulse rate [l/Imp]
+    regeneration_water_meter_pulse_rate: float | None = field(
+        default=None,
+        metadata=json_config(field_name="pprateregwater"),
+    )
+
+    # Capacity figure Monday [m³x°dH]
+    capacity_figure_monday: int | None = field(
+        default=None,
+        metadata=json_config(field_name="psetcapmo"),
+    )
+    # Capacity figure Tuesday [m³x°dH]
+    capacity_figure_tuesday: int | None = field(
+        default=None,
+        metadata=json_config(field_name="psetcaptu"),
+    )
+    # Capacity figure Wednesday [m³x°dH]
+    capacity_figure_wednesday: int | None = field(
+        default=None,
+        metadata=json_config(field_name="psetcapwe"),
+    )
+    # Capacity figure Thursday [m³x°dH]
+    capacity_figure_thursday: int | None = field(
+        default=None,
+        metadata=json_config(field_name="psetcapth"),
+    )
+    # Capacity figure Friday [m³x°dH]
+    capacity_figure_friday: int | None = field(
+        default=None,
+        metadata=json_config(field_name="psetcapfr"),
+    )
+    # Capacity figure Saturday [m³x°dH]
+    capacity_figure_saturday: int | None = field(
+        default=None,
+        metadata=json_config(field_name="psetcapsa"),
+    )
+    # Capacity figure Sunday [m³x°dH]
+    capacity_figure_sundday: int | None = field(
+        default=None,
+        metadata=json_config(field_name="psetcapsu"),
+    )
+
+    # Nominal flow rate [m³/h]
+    nominal_flow_rate: float | None = field(
+        default=None,
+        metadata=json_config(field_name="pnomflow"),
+    )
+
+    # Regeneration monitoring time [min]
+    regeneration_monitoring_time: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pmonregmeter"),
+    )
+    # Salting monitoring time [min]
+    salting_monitoring_time: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pmonsalting"),
+    )
+
+    # Slow rinse [min]
+    slow_rinse: float | None = field(
+        default=None,
+        metadata=json_config(field_name="prinsing"),
+    )
+
+    # Backwash [l]
+    backwash: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pbackwash"),
+    )
+
+    # Washing out [l]
+    washing_out: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pwashingout"),
+    )
+
+    # Minimum filling volume smallest cap [l]
+    minimum_filling_volume_smallest_cap: float | None = field(
+        default=None,
+        metadata=json_config(field_name="pminvolmincap"),
+    )
+    # Maximum filling volume smallest cap [l]
+    maximum_filling_volume_smallest_cap: float | None = field(
+        default=None,
+        metadata=json_config(field_name="pmaxvolmincap"),
+    )
+    # Minimum filling volume largest cap [l]
+    minimum_filling_volume_largest_cap: float | None = field(
+        default=None,
+        metadata=json_config(field_name="pminvolmaxcap"),
+    )
+    # Maximum filling volume largest cap [l]
+    maximum_filling_volume_largest_cap: float | None = field(
+        default=None,
+        metadata=json_config(field_name="pmaxvolmaxcap"),
+    )
+
+    # Longest switch-on time chlorine cell [min]
+    longest_switch_on_time_chlorine_cell: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pmaxdurdisinfect"),
+    )
+
+    # Maximum remaining time regeneration [min]
+    maximum_remaining_time_regeneration: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pmaxresdurreg"),
+    )
+
+    # Current language
+    language: int | None = field(
+        default=None,
+        metadata=json_config(field_name="planguage"),
+    )
+
+    # Programmable output function
+    programmable_output_function: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pprogout"),
+    )
+    # Programmable input function
+    programmable_input_function: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pprogin"),
+    )
+
+    # Reaction to power failure > 5 min
+    reaction_to_power_failure: int | None = field(
+        default=None,
+        metadata=json_config(field_name="ppowerfail"),
+    )
+
+    # Activate/deactivate chlorine cell
+    chlorine_cell_mode: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pmodedesinf"),
+    )
+
+    # Blending monitoring
+    blending_monitoring: int | None = field(
+        default=None,
+        metadata=json_config(field_name="pmonblend"),
+    )
+
+    # System overloaded
+    system_overloaded: int | None = field(
+        default=None,
+        metadata=json_config(field_name="poverload"),
+    )
+    # Unknown Parameter
+    ppressurereg: int | None = field(
+        default=None,
+        metadata=json_config(field_name="ppressurereg"),
+    )
+    # pdate: "[yyyy.mm.dd] Current date",
+    # pclearerrmem: "Delete error memory",
+    # pclearcntwater: "Reset water meter",
+    # pclearcntreg: "Reset regeneration counter",
 
 
 @dataclass_json
@@ -313,34 +533,62 @@ class DeviceParameters:
 class DeviceRealtimeInfo:
     """Object holding WebSocket realtime Information."""
 
+    # Soft water exchanger 1 [l]
     soft_water_quantity: int | None = field(
         default=None,
         metadata=json_config(field_name="mcountwater1"),
     )
+    # Soft water exchanger 2 [l]
+    soft_water_quantity_2: int | None = field(
+        default=None,
+        metadata=json_config(field_name="mcountwater2"),
+    )
+    # Regeneration counter
     regeneration_counter: int | None = field(
         default=None,
         metadata=json_config(field_name="mcountreg"),
     )
+    # Flow rate exchanger 1 [m³/h]
     current_flow_rate: float | None = field(
         default=None,
         metadata=json_config(field_name="mflow1"),
     )
+    # Flow rate exchanger 2 [m³/h]
+    current_flow_rate_2: float | None = field(
+        default=None,
+        metadata=json_config(field_name="mflow2"),
+    )
+    # Soft water Exchanger 1 [m³]
     remaining_capacity_volume: float | None = field(
         default=None,
         metadata=json_config(field_name="mrescapa1"),
     )
+    # Soft water Exchanger 2 [m³]
+    remaining_capacity_volume_2: float | None = field(
+        default=None,
+        metadata=json_config(field_name="mrescapa2"),
+    )
+    # Residual capacity 1 [%]
     remaining_capacity_percentage: int | None = field(
         default=None,
         metadata=json_config(field_name="mresidcap1"),
     )
+    # Residual capacity 2 [%]
+    remaining_capacity_percentage_2: int | None = field(
+        default=None,
+        metadata=json_config(field_name="mresidcap2"),
+    )
+    # Salt-reach [days]
     salt_range: int | None = field(
         default=None,
         metadata=json_config(field_name="msaltrange"),
     )
+    # Salt consumption [kg]
     salt_consumption: float | None = field(
         default=None,
         metadata=json_config(field_name="msaltusage"),
     )
+    # Perform maintenance in [days]
     next_service: int | None = field(
         default=None,
         metadata=json_config(field_name="mmaint"),
@@ -353,12 +601,120 @@ class DeviceRealtimeInfo:
     #   mregstatus -> when mremregstep is between 0 and 1,5, mremregstep has the
     #       value 10 as soon as mremregstep is > 4400 then it changes to 20
     #       on mremregstep ~= 300 it changes to 30 and when < 10 it changes to 40
-    mremregstep: float | None = field(
+    # Remaining amount / time of current regeneration step
+    regeneration_remaining_time: float | None = field(
         default=None, metadata=json_config(field_name="mremregstep")
     )
-    mregstatus: int | None = field(
+    # Regeneration step
+    regeneration_step: int | None = field(
         default=None,
         metadata=json_config(field_name="mregstatus"),
+    )
+    # Make-up water volume [l]
+    make_up_water_volume: int | None = field(
+        default=None,
+        metadata=json_config(field_name="mcountwatertank"),
+    )
+    # During [min] int?
+    # during_min: int | None = field(
+    #     default=None,
+    #     metadata=json_config(field_name="mflowexc"),
+    # )
+    # # : "[Min]", int?
+    # make_up_water_volume: int | None = field(
+    #     default=None,
+    #     metadata=json_config(field_name="mflowexc2reg1"),
+    # )
+    # # : "[Min]", int?
+    # make_up_water_volume: int | None = field(
+    #     default=None,
+    #     metadata=json_config(field_name="mflowexc1reg2"),
+    # )
+
+    # Adsorber exhausted percentage [%]
+    exhausted_percentage: int | None = field(
+        default=None,
+        metadata=json_config(field_name="mlifeadsorb"),
+    )
+    # Actual value soft water hardness [°dh] - int?
+    actual_value_soft_water_hardness: int | None = field(
+        default=None,
+        metadata=json_config(field_name="mhardsoftw"),
+    )
+    # Capacity figure [m³x°dH]
+    capacity_figure: float | None = field(
+        default=None,
+        metadata=json_config(field_name="mcapacity"),
+    )
+    # Flow rate peak value [m³/h]
+    flow_rate_peak_value: float | None = field(
+        default=None,
+        metadata=json_config(field_name="mflowmax"),
+    )
+    # Exchanger 1 peak value [m³/h] - float?
+    exchanger_peak_value: float | None = field(
+        default=None,
+        metadata=json_config(field_name="mflowmax1reg2"),
+    )
+    # Exchanger 2 peak value [m³/h] - float?
+    exchanger_peak_value_2: float | None = field(
+        default=None,
+        metadata=json_config(field_name="mflowmax2reg1"),
+    )
+    # Last regeneration Exchanger 1 [hh:mm]
+    last_regeneration_exchanger: datetime.time | None = field(
+        default=None,
+        metadata=json_config(field_name="mendreg1"),
+    )
+    # Last regeneration Exchanger 2 [hh:mm]
+    last_regeneration_exchanger_2: datetime.time | None = field(
+        default=None,
+        metadata=json_config(field_name="mendreg2"),
+    )
+    # # [%]?
+    # percentage: int | None = field(
+    #     default=None,
+    #     metadata=json_config(field_name="mregpercent1"),
+    # )
+    # # 2 [%]?
+    # percentage_2: int | None = field(
+    #     default=None,
+    #     metadata=json_config(field_name="mregpercent2"),
+    # )
+    # Regeneration flow rate Exchanger 1 [l/h] - int?
+    regeneration_flow_rate_exchanger: int | None = field(
+        default=None,
+        metadata=json_config(field_name="mflowreg1"),
+    )
+    # Regeneration flow rate Exchanger 2 [l/h] - int?
+    regeneration_flow_rate_exchanger_2: int | None = field(
+        default=None,
+        metadata=json_config(field_name="mflowreg2"),
+    )
+    # Blending flow rate [m³/h] - float?
+    blending_flow_rate: float | None = field(
+        default=None,
+        metadata=json_config(field_name="mflowblend"),
+    )
+    # Step indication regeneration valve 1
+    step_indication_regeneration_valve: int | None = field(
+        default=None,
+        metadata=json_config(field_name="mstep1"),
+    )
+    # Step indication regeneration valve 2
+    step_indication_regeneration_valve_2: int | None = field(
+        default=None,
+        metadata=json_config(field_name="mstep2"),
+    )
+    # Current chlorine [mA]
+    current_chlorine: int | None = field(
+        default=None,
+        metadata=json_config(field_name="mcurrent"),
+    )
+    # Adsorber remaining amount of water [m³] - float?
+    remaining_amount_of_water: float | None = field(
+        default=None,
+        metadata=json_config(field_name="mreswatadmod"),
     )
 
 
@@ -393,6 +749,7 @@ class Device:
             decoder=lambda value: datetime.datetime.strptime(value, "%z").tzinfo,
         ),
     )
+    # Start-up date
     startup: datetime.date | None = field(
         default=None,
         metadata=json_config(

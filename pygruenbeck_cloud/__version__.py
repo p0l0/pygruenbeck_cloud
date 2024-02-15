@@ -1,3 +1,3 @@
 """pygruenbeck_cloud version."""
 
-__version__ = "0.1.0"  # pragma: no cover
+__version__ = "1.0.0"  # pragma: no cover

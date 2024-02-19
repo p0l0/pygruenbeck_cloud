@@ -448,6 +448,8 @@ PARAMETER_OPERATION_MODES: dict[int, str] = {
     4: "Individual",
 }
 
+PARAMETER_OPERATION_MODES_INDIVIDUAL: Final = 4
+
 PARAMETER_REGENERATION_MODES: dict[int, str] = {
     0: "Automatic",
     1: "Fixed",

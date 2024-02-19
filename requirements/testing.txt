@@ -10,6 +10,6 @@ pydocstyle==6.3.0
 pylint==3.0.3
 pylint-strict-informational==0.1
 setuptools==69.1.0
-tox==4.12.1
+tox==4.13.0
 mypy==1.8.0
 pre-commit==3.6.0

@@ -568,12 +568,12 @@ class DeviceRealtimeInfo:
         default=None,
         metadata=json_config(field_name="mrescapa2"),
     )
-    # Residual capacity 1 [%]
+    # Residual capacity Exchanger 1 [%]
     remaining_capacity_percentage: int | None = field(
         default=None,
         metadata=json_config(field_name="mresidcap1"),
     )
-    # Residual capacity 2 [%]
+    # Residual capacity Exchanger 2 [%]
     remaining_capacity_percentage_2: int | None = field(
         default=None,
         metadata=json_config(field_name="mresidcap2"),

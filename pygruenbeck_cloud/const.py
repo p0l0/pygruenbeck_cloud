@@ -463,7 +463,7 @@ PARAMETER_WATER_UNITS: dict[int, str] = {
     5: "ppm",
 }
 
-PARAMETER_REGENERATION_STATUS: dict[int, str] = {
+PARAMETER_REGENERATION_STEP: dict[int, str] = {
     0: "Inactive",
     10: "Fill salt tank",
     20: "Salting",

@@ -18,7 +18,7 @@ with open(path.join(HERE, PACKAGE_NAME, "__version__.py"), encoding="utf-8") as 
 
 PACKAGES = find_packages(exclude=["tests", "tests.*", "dist", "build"])
 
-REQUIRES = ["aiohttp>=3.8.1", "yarl~=1.9.4", "dataclasses_json==0.6.3"]
+REQUIRES = ["aiohttp>=3.8.1", "yarl~=1.9.4", "dataclasses_json==0.6.4"]
 
 setup(
     name=PACKAGE_NAME,

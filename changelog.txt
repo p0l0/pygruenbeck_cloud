@@ -1,5 +1,5 @@
-Version 1.0.0 (2024-02-XX)
-- Bump dataclasses_json to 0.6.4
+Version 1.0.0 (2024-05-XX)
+- Bump dataclasses_json to 0.6.6
 - Added missing parameter and realtime information from API
 - Added mapping for Regeneration Status, Languages and LED mode
 - Extended diagnostics with request json body and request method

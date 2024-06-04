@@ -67,7 +67,7 @@ class TestGruenbeck:
                         f"Restored value for {parameter_name} is: {getattr(cur_device.parameters, parameter_name)}"
                     )
 
-                # await update_parameter_value("installer_name", "1234567890")
+                # await update_parameter_value("regeneration_mode", 1)
 
                 # Listener
                 async def listen():

@@ -21,101 +21,101 @@ Implementation is based on the [ioBroker gruenbeck adapter](https://github.com/T
 
 ### Available configuration parameter
 
-| Parameter                     | Type         | Description                                                                      |
-|-------------------------------|--------------|----------------------------------------------------------------------------------|
-| dslt                          | boolean      | Activation of daylight saving time                                               |
-| buzzer                        | boolean      | Activation of signal on error                                                    |
-| buzzer_from                   | time (HH:MM) | Signal from time                                                                 |
-| buzzer_to                     | time (HH:MM) | Signal from time                                                                 |
-| push_notification             | boolean      | Activation of push notifications                                                 |
-| email_notification            | boolean      | Activation of email notifications                                                |
-| water_hardness_unit           | integer      | Water hardness Unit (1 = "°dH", 2 = "°fH", 3 = "°e", 4 = "mol/m³", 5 = "ppm")    |
-| raw_water_hardness            | integer      | Water hardness value                                                             |
-| soft_water_hardness           | integer      | Softwater hardness value                                                         |
-| mode                          | integer      | Current operation mode (1 = "Eco", 2 = "Comfort", 3 = "Power", 4 = "Individual") |
-| mode_individual_monday        | integer      | Individual mode for Monday                                                       |
-| mode_individual_tuesday       | integer      | Individual mode for Tuesday                                                      |
-| mode_individual_wednesday     | integer      | Individual mode for Wednesday                                                    |
-| mode_individual_thursday      | integer      | Individual mode for Thursday                                                     |
-| mode_individual_friday        | integer      | Individual mode for Friday                                                       |
-| mode_individual_saturday      | integer      | Individual mode for Saturday                                                     |
-| mode_individual_sunday        | integer      | Individual mode for Sunday                                                       |
-| regeneration_mode             | integer      | Regeneration mode (0 = "Auto", 1 = "Fixed")                                      |
-| regeneration_time_monday_1    | string       | Custom regeneration time for Monday 1 (Format: HH:MM)                            |                                                                                  |
-| regeneration_time_monday_2    | string       | Custom regeneration time for Monday 2 (Format: HH:MM)                            |
-| regeneration_time_monday_3    | string       | Custom regeneration time for Monday 3 (Format: HH:MM)                            |
-| regeneration_time_tuesday_1   | string       | Custom regeneration time for Tuesday 1 (Format: HH:MM)                           |                                                                                  |
-| regeneration_time_tuesday_2   | string       | Custom regeneration time for Tuesday 2 (Format: HH:MM)                           |
-| regeneration_time_tuesday_3   | string       | Custom regeneration time for Tuesday 3 (Format: HH:MM)                           |
-| regeneration_time_wednesday_1 | string       | Custom regeneration time for Wednesday 1 (Format: HH:MM)                         |                                                                                  |
-| regeneration_time_wednesday_2 | string       | Custom regeneration time for Wednesday 2 (Format: HH:MM)                         |
-| regeneration_time_wednesday_3 | string       | Custom regeneration time for Wednesday 3 (Format: HH:MM)                         |
-| regeneration_time_thursday_1  | string       | Custom regeneration time for Thursday 1 (Format: HH:MM)                          |                                                                                  |
-| regeneration_time_thursday_2  | string       | Custom regeneration time for Thursday 2 (Format: HH:MM)                          |
-| regeneration_time_thursday_3  | string       | Custom regeneration time for Thursday 3 (Format: HH:MM)                          |
-| regeneration_time_friday_1    | string       | Custom regeneration time for Friday 1 (Format: HH:MM)                            |                                                                                  |
-| regeneration_time_friday_2    | string       | Custom regeneration time for Friday 2 (Format: HH:MM)                            |
-| regeneration_time_friday_3    | string       | Custom regeneration time for Friday 3 (Format: HH:MM)                            |
-| regeneration_time_saturday_1  | string       | Custom regeneration time for Saturday 1 (Format: HH:MM)                          |                                                                                  |
-| regeneration_time_saturday_2  | string       | Custom regeneration time for Saturday 2 (Format: HH:MM)                          |
-| regeneration_time_saturday_3  | string       | Custom regeneration time for Saturday 3 (Format: HH:MM)                          |
-| regeneration_time_sunday_1    | string       | Custom regeneration time for Sunday 1 (Format: HH:MM)                            |                                                                                  |
-| regeneration_time_sunday_2    | string       | Custom regeneration time for Sunday 2 (Format: HH:MM)                            |
-| regeneration_time_sunday_3    | string       | Custom regeneration time for Sunday 3 (Format: HH:MM)                            |
-| maintenance_interval          | integer      | Maintenance interval in days                                                     |
-| installer_name                | string       | Installer name                                                                   |
-| installer_phone               | string       | Installer phone                                                                  |
-| installer_email               | string       | Installer email                                                                  |
+| Parameter                            | Type         | Description                                                                                                                                                                                                      |
+|--------------------------------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| dslt                                 | boolean      | Activation of daylight saving time                                                                                                                                                                               |
+| buzzer                               | boolean      | Activation of signal on error                                                                                                                                                                                    |
+| buzzer_from                          | time (HH:MM) | Signal from time                                                                                                                                                                                                 |
+| buzzer_to                            | time (HH:MM) | Signal from time                                                                                                                                                                                                 |
+| push_notification                    | boolean      | Activation of push notifications                                                                                                                                                                                 |
+| email_notification                   | boolean      | Activation of email notifications                                                                                                                                                                                |
+| water_hardness_unit                  | integer      | Water hardness Unit (1 = "°dH", 2 = "°fH", 3 = "°e", 4 = "mol/m³", 5 = "ppm")                                                                                                                                    |
+| raw_water_hardness                   | integer      | Water hardness value                                                                                                                                                                                             |
+| soft_water_hardness                  | integer      | Softwater hardness value                                                                                                                                                                                         |
+| mode                                 | integer      | Current operation mode (1 = "Eco", 2 = "Comfort", 3 = "Power", 4 = "Individual")                                                                                                                                 |
+| mode_individual_monday               | integer      | Individual mode for Monday                                                                                                                                                                                       |
+| mode_individual_tuesday              | integer      | Individual mode for Tuesday                                                                                                                                                                                      |
+| mode_individual_wednesday            | integer      | Individual mode for Wednesday                                                                                                                                                                                    |
+| mode_individual_thursday             | integer      | Individual mode for Thursday                                                                                                                                                                                     |
+| mode_individual_friday               | integer      | Individual mode for Friday                                                                                                                                                                                       |
+| mode_individual_saturday             | integer      | Individual mode for Saturday                                                                                                                                                                                     |
+| mode_individual_sunday               | integer      | Individual mode for Sunday                                                                                                                                                                                       |
+| regeneration_mode                    | integer      | Regeneration mode (0 = "Auto", 1 = "Fixed")                                                                                                                                                                      |
+| regeneration_time_monday_1           | string       | Custom regeneration time for Monday 1 (Format: HH:MM)                                                                                                                                                            |                                                                                  |
+| regeneration_time_monday_2           | string       | Custom regeneration time for Monday 2 (Format: HH:MM)                                                                                                                                                            |
+| regeneration_time_monday_3           | string       | Custom regeneration time for Monday 3 (Format: HH:MM)                                                                                                                                                            |
+| regeneration_time_tuesday_1          | string       | Custom regeneration time for Tuesday 1 (Format: HH:MM)                                                                                                                                                           |                                                                                  |
+| regeneration_time_tuesday_2          | string       | Custom regeneration time for Tuesday 2 (Format: HH:MM)                                                                                                                                                           |
+| regeneration_time_tuesday_3          | string       | Custom regeneration time for Tuesday 3 (Format: HH:MM)                                                                                                                                                           |
+| regeneration_time_wednesday_1        | string       | Custom regeneration time for Wednesday 1 (Format: HH:MM)                                                                                                                                                         |                                                                                  |
+| regeneration_time_wednesday_2        | string       | Custom regeneration time for Wednesday 2 (Format: HH:MM)                                                                                                                                                         |
+| regeneration_time_wednesday_3        | string       | Custom regeneration time for Wednesday 3 (Format: HH:MM)                                                                                                                                                         |
+| regeneration_time_thursday_1         | string       | Custom regeneration time for Thursday 1 (Format: HH:MM)                                                                                                                                                          |                                                                                  |
+| regeneration_time_thursday_2         | string       | Custom regeneration time for Thursday 2 (Format: HH:MM)                                                                                                                                                          |
+| regeneration_time_thursday_3         | string       | Custom regeneration time for Thursday 3 (Format: HH:MM)                                                                                                                                                          |
+| regeneration_time_friday_1           | string       | Custom regeneration time for Friday 1 (Format: HH:MM)                                                                                                                                                            |                                                                                  |
+| regeneration_time_friday_2           | string       | Custom regeneration time for Friday 2 (Format: HH:MM)                                                                                                                                                            |
+| regeneration_time_friday_3           | string       | Custom regeneration time for Friday 3 (Format: HH:MM)                                                                                                                                                            |
+| regeneration_time_saturday_1         | string       | Custom regeneration time for Saturday 1 (Format: HH:MM)                                                                                                                                                          |                                                                                  |
+| regeneration_time_saturday_2         | string       | Custom regeneration time for Saturday 2 (Format: HH:MM)                                                                                                                                                          |
+| regeneration_time_saturday_3         | string       | Custom regeneration time for Saturday 3 (Format: HH:MM)                                                                                                                                                          |
+| regeneration_time_sunday_1           | string       | Custom regeneration time for Sunday 1 (Format: HH:MM)                                                                                                                                                            |                                                                                  |
+| regeneration_time_sunday_2           | string       | Custom regeneration time for Sunday 2 (Format: HH:MM)                                                                                                                                                            |
+| regeneration_time_sunday_3           | string       | Custom regeneration time for Sunday 3 (Format: HH:MM)                                                                                                                                                            |
+| maintenance_interval                 | integer      | Maintenance interval in days                                                                                                                                                                                     |
+| installer_name                       | string       | Installer name                                                                                                                                                                                                   |
+| installer_phone                      | string       | Installer phone                                                                                                                                                                                                  |
+| installer_email                      | string       | Installer email                                                                                                                                                                                                  |
+| ntp_sync                             | bool         | Get date/time automatically (NTP)                                                                                                                                                                                |
+| fault_signal_contact                 | bool         | Function fault signal contact                                                                                                                                                                                    |
+| knx                                  | bool         | KNX connection                                                                                                                                                                                                   |
+| nominal_flow_monitoring              | bool         | Monitoring of nominal flow                                                                                                                                                                                       |
+| disinfection_monitoring              | bool         | Disinfection monitoring                                                                                                                                                                                          |
+| led_ring_mode                        | int          | Illuminated LED ring mode (0 = "deactivated", 1 = "permanent lightning", 2 = "in case of failure", 3 = "in case of operation by user + failure", 4 = "in case of water treatment + operation by user + failure") |
+| led_ring_flash_on_signal             | bool         | Illuminated LED ring flashes for pre-alarm salt supply                                                                                                                                                           |
+| led_ring_brightness                  | int          | LED ring Brightness [%]                                                                                                                                                                                          |
+| residual_capacity_limit              | int          | Residual capacity limit value [%]                                                                                                                                                                                |
+| current_setpoint                     | int          | Current setpoint [mA]                                                                                                                                                                                            |
+| charge                               | int          | Charge [mAmin]                                                                                                                                                                                                   |
+| interval_forced_regeneration         | int          | Interval of forced regeneration [days]                                                                                                                                                                           |
+| end_frequency_regeneration_valve     | int          | End frequency regeneration valve [Hz]                                                                                                                                                                            |
+| end_frequency_regeneration_valve_2   | int          | End frequency regeneration valve 2 [Hz]                                                                                                                                                                          |
+| end_frequency_blending_valve         | int          | End frequency blending valve [Hz]                                                                                                                                                                                |
+| treatment_volume                     | int          | Treatment volume [m³]                                                                                                                                                                                            |
+| soft_water_meter_pulse_rate          | float        | Soft water meter pulse rate [l/Imp]                                                                                                                                                                              |
+| blending_water_meter_pulse_rate      | float        | Blending water meter pulse rate [l/Imp]                                                                                                                                                                          |
+| regeneration_water_meter_pulse_rate  | float        | Regeneration water meter pulse rate [l/Imp]                                                                                                                                                                      |
+| capacity_figure_monday               | int          | Capacity figure Monday [m³x°dH]                                                                                                                                                                                  |
+| capacity_figure_tuesday              | int          | Capacity figure Tuesday [m³x°dH]                                                                                                                                                                                 |
+| capacity_figure_wednesday            | int          | Capacity figure Wednesday [m³x°dH]                                                                                                                                                                               |
+| capacity_figure_thursday             | int          | Capacity figure Thursday [m³x°dH]                                                                                                                                                                                |
+| capacity_figure_friday               | int          | Capacity figure Friday [m³x°dH]                                                                                                                                                                                  |
+| capacity_figure_saturday             | int          | Capacity figure Saturday [m³x°dH]                                                                                                                                                                                |
+| capacity_figure_sundday              | int          | Capacity figure Sunday [m³x°dH]                                                                                                                                                                                  |
+| nominal_flow_rate                    | float        | Nominal flow rate [m³/h]                                                                                                                                                                                         |
+| regeneration_monitoring_time         | int          | Regeneration monitoring time [min]                                                                                                                                                                               |
+| salting_monitoring_time              | int          | Salting monitoring time [min]                                                                                                                                                                                    |
+| slow_rinse                           | float        | Slow rinse [min]                                                                                                                                                                                                 |
+| backwash                             | int          | Backwash [l]                                                                                                                                                                                                     |
+| washing_out                          | int          | Washing out [l]                                                                                                                                                                                                  |
+| minimum_filling_volume_smallest_cap  | float        | Minimum filling volume smallest cap [l]                                                                                                                                                                          |
+| maximum_filling_volume_smallest_cap  | float        | Maximum filling volume smallest cap [l]                                                                                                                                                                          |
+| minimum_filling_volume_largest_cap   | float        | Minimum filling volume largest cap [l]                                                                                                                                                                           |
+| maximum_filling_volume_largest_cap   | float        | Maximum filling volume largest cap [l]                                                                                                                                                                           |
+| longest_switch_on_time_chlorine_cell | int          | Longest switch-on time Cl cell [min]                                                                                                                                                                             |
+| maximum_remaining_time_regeneration  | int          | Maximum remaining time regeneration [min]                                                                                                                                                                        |
+| language                             | int          | Current language  (1 = "German", 2 = "English", 3 = "French", 4 = "Italian", 5 = "Dutch", 6 = "Spanish", 7 = "Russian", 9 = "Danish")                                                                              |
+| programmable_output_function         | int          | Programmable output function                                                                                                                                                                                     |
+| programmable_input_function          | int          | Programmable input function                                                                                                                                                                                      |
+| reaction_to_power_failure            | int          | Reaction to power failure > 5 min                                                                                                                                                                                |
+| chlorine_cell_mode                   | int          | Activate/deactivate chlorine cell                                                                                                                                                                                |
+| blending_monitoring                  | int          | Blending monitoring                                                                                                                                                                                              |
+| system_overloaded                    | int          | System overloaded                                                                                                                                                                                                |
 
 And these are additional parameter which are provided by the API, but their meaning and/or value is not known:
 
-| Parameter        | Type  |
-|------------------|-------|
-| pntpsync         | bool  |
-| pcfcontact       | bool  |
-| pknx             | bool  |
-| pmonflow         | bool  |
-| pmondisinf       | bool  |
-| pledatsaltpre    | bool  |
-| prescaplimit     | int   |
-| pcurrent         | int   |
-| pload            | int   |
-| pforcedregdist   | int   |
-| pfreqregvalve    | int   |
-| pfreqblendvalve  | int   |
-| pledbright       | int   |
-| pvolume          | int   |
-| ppratesoftwater  | float |
-| pprateblending   | float |
-| pprateregwater   | float |
-| psetcapmo        | int   |
-| psetcaptu        | int   |
-| psetcapwe        | int   |
-| psetcapth        | int   |
-| psetcapfr        | int   |
-| psetcapsa        | int   |
-| psetcapsu        | int   |
-| pnomflow         | float |
-| ppressurereg     | int   |
-| pmonregmeter     | int   |
-| pmonsalting      | int   |
-| prinsing         | float |
-| pbackwash        | int   |
-| pwashingout      | int   |
-| pminvolmincap    | float |
-| pmaxvolmincap    | float |
-| pminvolmaxcap    | float |
-| pmaxvolmaxcap    | float |
-| pmaxdurdisinfect | int   |
-| pmaxresdurreg    | int   |
-| planguage        | int   |
-| pprogout         | int   |
-| pprogin          | int   |
-| ppowerfail       | int   |
-| pmodedesinf      | int   |
-| pled             | int   |
-| pmonblend        | int   |
-| poverload        | int   |
-| pfreqregvalve2   | int   |
+| Parameter                            | Type  |
+|--------------------------------------|-------|
+| ppressurereg                         | int   |
 
 Feel free to open an [issue](https://github.com/p0l0/pygruenbeck_cloud/issues) if you know the meaning of them and their possible values.

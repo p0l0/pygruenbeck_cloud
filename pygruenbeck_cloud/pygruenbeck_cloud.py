@@ -649,15 +649,21 @@ class PyGruenbeckCloud:
                         new_value = datetime.strptime(data[key], "%H:%M").time()
                 setattr(parameters, key, new_value)
 
-        # Create dict with right JSON Keys
+        # Get difference with right JSON Keys
+        parameter_json_dict = parameters.to_dict()  # type: ignore[attr-defined]
         changed_data = dict(
-            set(parameters.to_dict().items())  # type: ignore[attr-defined]
+            set(parameter_json_dict.items())
             ^ set(self.device.parameters.to_dict().items())  # type: ignore[attr-defined]  # noqa: E501
         )
 
         if not changed_data:
             self.logger.warning("No changes detected in provided parameters")
             return self.device
+
+        # Create JSON Object with changed data
+        json_data = {}
+        for key in changed_data.keys():
+            json_data[key] = parameter_json_dict[key]
 
         token = await self._get_web_access_token()
 
@@ -685,7 +691,7 @@ class PyGruenbeckCloud:
             url=url,
             headers=headers,
             method=method,
-            json_data=changed_data,
+            json_data=json_data,
             use_cookies=use_cookies,
         )
         if not isinstance(response, dict):
@@ -899,8 +905,10 @@ class PyGruenbeckCloud:
                 self._response_log.append(
                     {
                         "url": str(url),
+                        "req_method": method,
                         "req_headers": headers,
-                        "red_data": data,
+                        "req_data": data,
+                        "req_json_data": json_data,
                         "resp_headers": resp.headers,
                         "resp_status": str(resp.status),
                         "response": str(await resp.text()),

@@ -860,6 +860,7 @@ class PyGruenbeckCloud:
 
     async def _http_request(
         self,
+        *,
         headers: dict,
         url: StrOrURL,
         data: Any = None,

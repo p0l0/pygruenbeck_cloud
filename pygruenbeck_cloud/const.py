@@ -1,9 +1,11 @@
 """Constants for the Gruenbeck Cloud library."""
+
 from datetime import timedelta
 import re
 from typing import Any, Final
 
 import aiohttp
+from yarl._url import DEFAULT_PORTS
 
 # User Agent configuration
 USER_AGENT_APP: Final = "Gruenbeck/354 CFNetwork/1209 Darwin/20.2.0"
@@ -79,6 +81,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
     "login_step_1": {
         "scheme": LOGIN_SCHEME,
         "host": LOGIN_HOST,
+        "port": DEFAULT_PORTS.get(LOGIN_SCHEME),
         "path": (
             "/a50d35c1-202f-4da7-aa87-76e51a3098c6/b2c_1a_signinup/oauth2/v2.0/authorize"  # noqa: E501
         ),
@@ -119,6 +122,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
     "login_step_2": {
         "scheme": LOGIN_SCHEME,
         "host": LOGIN_HOST,
+        "port": DEFAULT_PORTS.get(LOGIN_SCHEME),
         "path": f"{{{PARAM_NAME_TENANT}}}/SelfAsserted",
         "method": aiohttp.hdrs.METH_POST,
         "use_cookies": True,
@@ -144,6 +148,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
     "login_step_3": {
         "scheme": LOGIN_SCHEME,
         "host": LOGIN_HOST,
+        "port": DEFAULT_PORTS.get(LOGIN_SCHEME),
         "path": f"{{{PARAM_NAME_TENANT}}}/api/CombinedSigninAndSignup/confirmed",
         "method": aiohttp.hdrs.METH_GET,
         "use_cookies": True,
@@ -165,6 +170,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
     "login_step_4": {
         "scheme": LOGIN_SCHEME,
         "host": LOGIN_HOST,
+        "port": DEFAULT_PORTS.get(LOGIN_SCHEME),
         "path": f"{{{PARAM_NAME_TENANT}}}/oauth2/v2.0/token",
         "method": aiohttp.hdrs.METH_POST,
         "use_cookies": True,
@@ -201,6 +207,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
     "web_token_refresh": {
         "scheme": LOGIN_SCHEME,
         "host": LOGIN_HOST,
+        "port": DEFAULT_PORTS.get(LOGIN_SCHEME),
         "path": f"{{{PARAM_NAME_TENANT}}}/oauth2/v2.0/token",
         "method": aiohttp.hdrs.METH_POST,
         "use_cookies": False,
@@ -235,6 +242,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
     "start_ws_negotiation": {
         "scheme": API_SCHEME,
         "host": API_HOST,
+        "port": DEFAULT_PORTS.get(API_SCHEME),
         "path": "/api/realtime/negotiate",
         "method": aiohttp.hdrs.METH_GET,
         "use_cookies": False,
@@ -255,6 +263,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
     "get_ws_connection_id": {
         "scheme": API_WS_SCHEME_HTTP,
         "host": API_WS_HOST,
+        "port": DEFAULT_PORTS.get(API_WS_SCHEME_HTTP),
         "path": "/client/negotiate",
         "method": aiohttp.hdrs.METH_POST,
         "use_cookies": False,
@@ -274,6 +283,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
     "get_devices": {
         "scheme": API_SCHEME,
         "host": API_HOST,
+        "port": DEFAULT_PORTS.get(API_SCHEME),
         "path": "/api/devices",
         "method": aiohttp.hdrs.METH_GET,
         "use_cookies": False,
@@ -294,6 +304,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
     "get_device_infos_request": {
         "scheme": API_SCHEME,
         "host": API_HOST,
+        "port": DEFAULT_PORTS.get(API_SCHEME),
         "path": f"/api/devices/{{{PARAM_NAME_DEVICE_ID}}}/{{{PARAM_NAME_ENDPOINT}}}",
         "method": aiohttp.hdrs.METH_GET,
         "use_cookies": False,
@@ -314,6 +325,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
     "enter_sd": {
         "scheme": API_SCHEME,
         "host": API_HOST,
+        "port": DEFAULT_PORTS.get(API_SCHEME),
         "path": f"/api/devices/{{{PARAM_NAME_DEVICE_ID}}}/realtime/enter",
         "method": aiohttp.hdrs.METH_POST,
         "use_cookies": False,
@@ -333,6 +345,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
     "refresh_sd": {
         "scheme": API_SCHEME,
         "host": API_HOST,
+        "port": DEFAULT_PORTS.get(API_SCHEME),
         "path": f"/api/devices/{{{PARAM_NAME_DEVICE_ID}}}/realtime/refresh",
         "method": aiohttp.hdrs.METH_POST,
         "use_cookies": False,
@@ -352,6 +365,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
     "leave_sd": {
         "scheme": API_SCHEME,
         "host": API_HOST,
+        "port": DEFAULT_PORTS.get(API_SCHEME),
         "path": f"/api/devices/{{{PARAM_NAME_DEVICE_ID}}}/realtime/leave",
         "method": aiohttp.hdrs.METH_POST,
         "use_cookies": False,
@@ -371,6 +385,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
     "update_device_parameter": {
         "scheme": API_SCHEME,
         "host": API_HOST,
+        "port": DEFAULT_PORTS.get(API_SCHEME),
         "path": f"/api/devices/{{{PARAM_NAME_DEVICE_ID}}}/parameters",
         "method": aiohttp.hdrs.METH_PATCH,
         "use_cookies": False,
@@ -391,6 +406,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
     "regenerate": {
         "scheme": API_SCHEME,
         "host": API_HOST,
+        "port": DEFAULT_PORTS.get(API_SCHEME),
         "path": f"/api/devices/{{{PARAM_NAME_DEVICE_ID}}}/regenerate",
         "method": aiohttp.hdrs.METH_POST,
         "use_cookies": False,
@@ -411,6 +427,7 @@ WEB_REQUESTS: dict[str, dict[str, Any]] = {
     "placeholder": {
         "scheme": LOGIN_SCHEME,
         "host": LOGIN_HOST,
+        "port": DEFAULT_PORTS.get(LOGIN_SCHEME),
         "path": "/path",
         "method": aiohttp.hdrs.METH_GET,
         "use_cookies": False,

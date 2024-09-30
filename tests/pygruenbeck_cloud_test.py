@@ -1,4 +1,5 @@
 """Test for pygruenbeck_cloud."""
+
 from __future__ import annotations
 
 import datetime
@@ -120,13 +121,17 @@ async def test_login(
     # Overwrite server values
     return_value = WEB_REQUESTS
     return_value["login_step_1"]["scheme"] = "http"
-    return_value["login_step_1"]["host"] = f"{server.host}:{server.port}"
+    return_value["login_step_1"]["host"] = f"{server.host}"
+    return_value["login_step_1"]["port"] = int(f"{server.port}")
     return_value["login_step_2"]["scheme"] = "http"
-    return_value["login_step_2"]["host"] = f"{server.host}:{server.port}"
+    return_value["login_step_2"]["host"] = f"{server.host}"
+    return_value["login_step_2"]["port"] = int(f"{server.port}")
     return_value["login_step_3"]["scheme"] = "http"
-    return_value["login_step_3"]["host"] = f"{server.host}:{server.port}"
+    return_value["login_step_3"]["host"] = f"{server.host}"
+    return_value["login_step_3"]["port"] = int(f"{server.port}")
     return_value["login_step_4"]["scheme"] = "http"
-    return_value["login_step_4"]["host"] = f"{server.host}:{server.port}"
+    return_value["login_step_4"]["host"] = f"{server.host}"
+    return_value["login_step_4"]["port"] = int(f"{server.port}")
     mock_request.return_value = return_value
 
     fake_api.domain = f"{server.host}:{server.port}"
@@ -186,7 +191,8 @@ async def test_get_devices(
     # Overwrite server values
     return_value = WEB_REQUESTS
     return_value["get_devices"]["scheme"] = "http"
-    return_value["get_devices"]["host"] = f"{server.host}:{server.port}"
+    return_value["get_devices"]["host"] = f"{server.host}"
+    return_value["get_devices"]["port"] = int(f"{server.port}")
     mock_request.return_value = return_value
 
     fake_api.domain = f"{server.host}:{server.port}"
@@ -285,9 +291,11 @@ async def test_set_device(
     # Overwrite server values
     return_value = WEB_REQUESTS
     return_value["get_devices"]["scheme"] = "http"
-    return_value["get_devices"]["host"] = f"{server.host}:{server.port}"
+    return_value["get_devices"]["host"] = f"{server.host}"
+    return_value["get_devices"]["port"] = int(f"{server.port}")
     return_value["get_device_infos_request"]["scheme"] = "http"
-    return_value["get_device_infos_request"]["host"] = f"{server.host}:{server.port}"
+    return_value["get_device_infos_request"]["host"] = f"{server.host}"
+    return_value["get_device_infos_request"]["port"] = int(f"{server.port}")
     mock_request.return_value = return_value
 
     fake_api.domain = f"{server.host}:{server.port}"

@@ -1,4 +1,5 @@
 """Setup for pygruenbeck_cloud python package."""
+
 from __future__ import annotations
 
 from os import path
@@ -18,7 +19,7 @@ with open(path.join(HERE, PACKAGE_NAME, "__version__.py"), encoding="utf-8") as 
 
 PACKAGES = find_packages(exclude=["tests", "tests.*", "dist", "build"])
 
-REQUIRES = ["aiohttp>=3.8.1", "yarl>=1.9.4,<1.13.0", "dataclasses_json==0.6.7"]
+REQUIRES = ["aiohttp==3.10.8", "yarl==1.13.1", "dataclasses_json==0.6.7"]
 
 setup(
     name=PACKAGE_NAME,

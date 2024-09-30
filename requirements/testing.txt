@@ -11,5 +11,5 @@ pylint==3.2.7
 pylint-strict-informational==0.1
 setuptools==75.1.0
 tox==4.18.0
-mypy==1.10.0
+mypy==1.11.2
 pre-commit==3.7.1

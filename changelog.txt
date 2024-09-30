@@ -4,6 +4,8 @@ Version 1.0.0 (2024-09-XX)
 - Extended diagnostics with request json body and request method
 - Fixed sending correct changed parameter to API
 - Added usage example file
+- Bump aiohttp to 3.10.8
+- Bump yarl to 1.13.1
 
 
 Version 0.2.0 (2024-09-30)

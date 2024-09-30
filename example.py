@@ -2,6 +2,7 @@
 """Demo file for testing."""
 import asyncio
 import logging
+from typing import Any
 
 from pygruenbeck_cloud import PyGruenbeckCloud
 from pygruenbeck_cloud.exceptions import PyGruenbeckCloudConnectionError

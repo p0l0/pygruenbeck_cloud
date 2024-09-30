@@ -1,3 +1,19 @@
+Version 0.2.0 (2024-09-30)
+- Updated testing dependencies:
+  - Bump pylint to 3.3.1
+  - Bump mypy to 1.11.2
+  - Bump pytest to 8.3.2
+  - Bump pytest-cov to 5.0.0
+  - Bump flake8 to 7.1.1
+  - Bump tox to 4.18.0
+  - Bump pre-commit to 3.7.1
+  - Bump pytest-asyncio to 0.24.0
+  - Bump setuptools to 75.1.0
+  - Bump black to 24.4.2
+- Updated dependencies:
+  - Bump dataclasses_json to 0.6.7
+  - Update yarl to ~=1.12.1
+
 Version 0.1.0 (2024-02-03)
 - Implemented mapping for Operation Modes
 - Use of dataclasses_json to handle responses easier

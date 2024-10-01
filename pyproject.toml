@@ -1,3 +1,42 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pygruenbeck_cloud"
+dynamic = ["version", "dependencies"]
+license={text = "MIT License"}
+authors = [
+  { name="Marco Neumann", email="pygruenbeck_cloud@binware.dev" },
+]
+description = "Python Library to communicate with Grünbeck Cloud based Water softeners"
+readme = "README.md"
+requires-python = ">=3.11"
+keywords=["gruenbeck", "gruenbeck-cloud", "home", "automation"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Home Automation",
+]
+
+[project.urls]
+Homepage = "https://github.com/p0l0/pygruenbeck_cloud"
+Issues = "https://github.com/p0l0/pygruenbeck_cloud/issues"
+
+[tool.setuptools.packages.find]
+exclude = ["tests", "tests.*", "dist", "build"]
+
+[tool.setuptools.package-data]
+pygruenbeck_cloud = ["py.typed"]
+
+[tool.setuptools.dynamic]
+version = {attr = "pygruenbeck_cloud.__version__"}
+dependencies = {file = ["requirements/production.txt"]}
+
 [tool.black]
 target-version = ["py311"]
 exclude = 'generated'

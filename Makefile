@@ -24,8 +24,7 @@ test:
 	pytest
 
 build:
-	@python3 setup.py sdist
-	@python3 setup.py egg_info
+	@python3 -m build
 
 pypi:
 	@rm -f dist/*

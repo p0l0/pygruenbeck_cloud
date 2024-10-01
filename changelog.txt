@@ -1,11 +1,10 @@
-Version 1.0.0 (2024-09-XX)
+Version 1.0.0 (2024-10-XX)
 - Added missing parameter and realtime information from API
 - Added mapping for Regeneration Status, Languages and LED mode
 - Extended diagnostics with request json body and request method
 - Fixed sending correct changed parameter to API
 - Added usage example file
-- Bump aiohttp to 3.10.8
-- Bump yarl to 1.13.1
+- Changed dependencies to use minimum version to avoid dependency conflict
 
 
 Version 0.2.0 (2024-09-30)

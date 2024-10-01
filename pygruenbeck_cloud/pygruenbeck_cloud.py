@@ -69,6 +69,7 @@ from .exceptions import (
     PyGruenbeckCloudMissingAuthTokenError,
     PyGruenbeckCloudResponseError,
     PyGruenbeckCloudResponseStatusError,
+    PyGruenbeckCloudUpdateParameterError,
 )
 from .models import DailyUsageEntry, Device, DeviceParameters, GruenbeckAuthToken
 
@@ -347,13 +348,13 @@ class PyGruenbeckCloud:
         )
 
         url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
-        # @TODO - expected_status_code and allow_redirects can also come from CONST!
+        # @TODO - expected_status_codes and allow_redirects can also come from CONST!
         response = await self._http_request(
             url=url,
             headers=headers,
             method=method,
             data=data,
-            expected_status_code=aiohttp.http.HTTPStatus.FOUND,
+            expected_status_codes=[aiohttp.http.HTTPStatus.FOUND],
             allow_redirects=False,
             use_cookies=use_cookies,
         )
@@ -702,10 +703,23 @@ class PyGruenbeckCloud:
             method=method,
             json_data=json_data,
             use_cookies=use_cookies,
+            expected_status_codes=[
+                aiohttp.http.HTTPStatus.OK,
+                aiohttp.http.HTTPStatus.INTERNAL_SERVER_ERROR,
+            ],
         )
         if not isinstance(response, dict):
             msg = f"Incorrect response from {url}"
             raise PyGruenbeckCloudResponseError(msg)
+
+        if "error" in response:
+            error = (
+                f"Unable to update parameter {list(data)}, "
+                f"error is '{response['error']['type']}'."
+            )
+            self.logger.error(error)
+
+            raise PyGruenbeckCloudUpdateParameterError(error)
 
         # Update current device parameters
         self.device.parameters = DeviceParameters.from_dict(response)  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
@@ -750,7 +764,7 @@ class PyGruenbeckCloud:
             method=method,
             json_data=data,
             use_cookies=use_cookies,
-            expected_status_code=202,
+            expected_status_codes=[aiohttp.http.HTTPStatus.ACCEPTED],
         )
 
         return self.device
@@ -787,13 +801,13 @@ class PyGruenbeckCloud:
         query = WEB_REQUESTS["enter_sd"]["query_params"]
 
         url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
-        # @TODO - expected_status_code and allow_redirects can also come from CONST!
+        # @TODO - expected_status_codes and allow_redirects can also come from CONST!
         await self._http_request(
             url=url,
             headers=headers,
             method=method,
             data=data,
-            expected_status_code=202,
+            expected_status_codes=[aiohttp.http.HTTPStatus.ACCEPTED],
             use_cookies=use_cookies,
         )
 
@@ -827,13 +841,13 @@ class PyGruenbeckCloud:
         query = WEB_REQUESTS["refresh_sd"]["query_params"]
 
         url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
-        # @TODO - expected_status_code and allow_redirects can also come from CONST!
+        # @TODO - expected_status_codes and allow_redirects can also come from CONST!
         await self._http_request(
             url=url,
             headers=headers,
             method=method,
             data=data,
-            expected_status_code=202,
+            expected_status_codes=[aiohttp.http.HTTPStatus.ACCEPTED],
             use_cookies=use_cookies,
         )
 
@@ -867,13 +881,13 @@ class PyGruenbeckCloud:
         query = WEB_REQUESTS["leave_sd"]["query_params"]
 
         url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
-        # @TODO - expected_status_code and allow_redirects can also come from CONST!
+        # @TODO - expected_status_codes and allow_redirects can also come from CONST!
         await self._http_request(
             url=url,
             headers=headers,
             method=method,
             data=data,
-            expected_status_code=202,
+            expected_status_codes=[aiohttp.http.HTTPStatus.ACCEPTED],
             use_cookies=use_cookies,
         )
 
@@ -884,12 +898,15 @@ class PyGruenbeckCloud:
         url: StrOrURL,
         data: Any = None,
         json_data: Any = None,
-        expected_status_code: int = aiohttp.http.HTTPStatus.OK,
+        expected_status_codes: list[int] | None = None,
         method: str = aiohttp.hdrs.METH_GET,
         allow_redirects: bool = False,
         use_cookies: bool = False,
     ) -> str | dict[Any, Any] | list[Any]:
         """Execute HTTP request."""
+        if expected_status_codes is None:
+            expected_status_codes = [aiohttp.http.HTTPStatus.OK]
+
         if self.session is None:
             self.session = ClientSession()
             self._close_session = True
@@ -937,10 +954,10 @@ class PyGruenbeckCloud:
                     msg = f"Response from URL {url} has incorrect type {type(response)}"
                     raise PyGruenbeckCloudResponseError(msg)
 
-                if resp.status != expected_status_code:
+                if resp.status not in expected_status_codes:
                     error = (
                         f"Response status code for {url} is {resp.status},"
-                        f" we expected {expected_status_code}."
+                        f" we expected one of {expected_status_codes}."
                     )
                     self.logger.error(error)
 

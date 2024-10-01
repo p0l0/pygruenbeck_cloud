@@ -1,4 +1,5 @@
 """Module for pygruenbeck_cloud Exceptions."""
+
 from __future__ import annotations
 
 
@@ -12,6 +13,10 @@ class PyGruenbeckCloudResponseError(Exception):
 
 class PyGruenbeckCloudResponseStatusError(Exception):
     """PyGruenbeck API Response status Error exception."""
+
+
+class PyGruenbeckCloudUpdateParameterError(Exception):
+    """PyGruenbeck API Response Error on Parameter Update exception."""
 
 
 class PyGruenbeckCloudConnectionError(Exception):

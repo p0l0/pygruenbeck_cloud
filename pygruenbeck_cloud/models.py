@@ -1,4 +1,5 @@
 """Models for Gruenbeck Cloud library."""
+
 from dataclasses import dataclass, field
 import datetime
 import logging
@@ -404,7 +405,7 @@ class DeviceParameters:
         metadata=json_config(field_name="psetcapsa"),
     )
     # Capacity figure Sunday [m³x°dH]
-    capacity_figure_sundday: int | None = field(
+    capacity_figure_sunday: int | None = field(
         default=None,
         metadata=json_config(field_name="psetcapsu"),
     )

@@ -715,7 +715,7 @@ class PyGruenbeckCloud:
         if "error" in response:
             error = (
                 f"Unable to update parameter {list(data)}, "
-                f"error is '{response['error']['type']}'."
+                f"error from API is '{response['error']['type']}'."
             )
             self.logger.error(error)
 

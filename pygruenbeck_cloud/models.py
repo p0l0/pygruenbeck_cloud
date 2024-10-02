@@ -159,90 +159,387 @@ class DeviceParameters:
         default=None,
         metadata=json_config(field_name="pregmode"),
     )
-    regeneration_time_monday_1: str | None = field(
+
+    regeneration_time_monday_1: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregmo1"),
-    )  # datetime.time | None = None
-    regeneration_time_monday_2: str | None = field(
+        metadata=json_config(
+            field_name="pregmo1",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_monday_2: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregmo2"),
-    )  # datetime.time | None = None
-    regeneration_time_monday_3: str | None = field(
+        metadata=json_config(
+            field_name="pregmo2",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_monday_3: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregmo3"),
-    )  # datetime.time | None = None
-    regeneration_time_tuesday_1: str | None = field(
+        metadata=json_config(
+            field_name="pregmo3",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_tuesday_1: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregtu1"),
-    )  # datetime.time | None = None
-    regeneration_time_tuesday_2: str | None = field(
+        metadata=json_config(
+            field_name="pregtu1",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_tuesday_2: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregtu2"),
-    )  # datetime.time | None = None
-    regeneration_time_tuesday_3: str | None = field(
+        metadata=json_config(
+            field_name="pregtu2",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_tuesday_3: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregtu3"),
-    )  # datetime.time | None = None
-    regeneration_time_wednesday_1: str | None = field(
+        metadata=json_config(
+            field_name="pregtu3",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_wednesday_1: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregwe1"),
-    )  # datetime.time | None = None
-    regeneration_time_wednesday_2: str | None = field(
+        metadata=json_config(
+            field_name="pregwe1",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_wednesday_2: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregwe2"),
-    )  # datetime.time | None = None
-    regeneration_time_wednesday_3: str | None = field(
+        metadata=json_config(
+            field_name="pregwe2",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_wednesday_3: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregwe3"),
-    )  # datetime.time | None = None
-    regeneration_time_thursday_1: str | None = field(
+        metadata=json_config(
+            field_name="pregwe3",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_thursday_1: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregth1"),
-    )  # datetime.time | None = None
-    regeneration_time_thursday_2: str | None = field(
+        metadata=json_config(
+            field_name="pregth1",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_thursday_2: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregth2"),
-    )  # datetime.time | None = None
-    regeneration_time_thursday_3: str | None = field(
+        metadata=json_config(
+            field_name="pregth2",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_thursday_3: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregth3"),
-    )  # datetime.time | None = None
-    regeneration_time_friday_1: str | None = field(
+        metadata=json_config(
+            field_name="pregth3",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_friday_1: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregfr1"),
-    )  # datetime.time | None = None
-    regeneration_time_friday_2: str | None = field(
+        metadata=json_config(
+            field_name="pregfr1",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_friday_2: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregfr2"),
-    )  # datetime.time | None = None
-    regeneration_time_friday_3: str | None = field(
+        metadata=json_config(
+            field_name="pregfr2",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_friday_3: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregfr3"),
-    )  # datetime.time | None = None
-    regeneration_time_saturday_1: str | None = field(
+        metadata=json_config(
+            field_name="pregfr3",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+    # regeneration_time_saturday_1: str | None = field(
+    #     default=None,
+    #     metadata=json_config(field_name="pregsa1"),
+    # )  # datetime.time | None = None
+    regeneration_time_saturday_1: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregsa1"),
-    )  # datetime.time | None = None
-    regeneration_time_saturday_2: str | None = field(
+        metadata=json_config(
+            field_name="pregsa1",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_saturday_2: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregsa2"),
-    )  # datetime.time | None = None
-    regeneration_time_saturday_3: str | None = field(
+        metadata=json_config(
+            field_name="pregsa2",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_saturday_3: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregsa3"),
-    )  # datetime.time | None = None
-    regeneration_time_sunday_1: str | None = field(
+        metadata=json_config(
+            field_name="pregsa3",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_sunday_1: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregsu1"),
-    )  # datetime.time | None = None
-    regeneration_time_sunday_2: str | None = field(
+        metadata=json_config(
+            field_name="pregsu1",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_sunday_2: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregsu2"),
-    )  # datetime.time | None = None
-    regeneration_time_sunday_3: str | None = field(
+        metadata=json_config(
+            field_name="pregsu2",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
+
+    regeneration_time_sunday_3: datetime.time | None = field(
         default=None,
-        metadata=json_config(field_name="pregsu3"),
-    )  # datetime.time | None = None
+        metadata=json_config(
+            field_name="pregsu3",
+            encoder=lambda value: (
+                value.strftime("%H:%M")
+                if value is not None and value != "--:--"
+                else None
+            ),
+            decoder=lambda value: (
+                datetime.datetime.strptime(value, "%H:%M").time()
+                if value is not None and value != "--:--"
+                else None
+            ),
+            mm_field=mm_fields.Date(format="%H:%M"),
+        ),
+    )
 
     # Maintenance information [days]
     maintenance_interval: int | None = field(

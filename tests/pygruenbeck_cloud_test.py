@@ -1,6 +1,9 @@
 """Test for pygruenbeck_cloud."""
+
 from __future__ import annotations
 
+import datetime
+import json
 from unittest.mock import patch
 
 import aiohttp
@@ -9,11 +12,14 @@ import pytest
 
 from pygruenbeck_cloud import PyGruenbeckCloud
 from pygruenbeck_cloud.const import (
+    PARAM_NAME_DEVICE_ID,
+    PARAM_NAME_ENDPOINT,
     PARAM_NAME_PASSWORD,
     PARAM_NAME_TENANT,
     PARAM_NAME_USERNAME,
     WEB_REQUESTS,
 )
+from pygruenbeck_cloud.models import GruenbeckAuthToken
 
 from tests.conftest import FakeApi
 
@@ -115,13 +121,17 @@ async def test_login(
     # Overwrite server values
     return_value = WEB_REQUESTS
     return_value["login_step_1"]["scheme"] = "http"
-    return_value["login_step_1"]["host"] = f"{server.host}:{server.port}"
+    return_value["login_step_1"]["host"] = f"{server.host}"
+    return_value["login_step_1"]["port"] = int(f"{server.port}")
     return_value["login_step_2"]["scheme"] = "http"
-    return_value["login_step_2"]["host"] = f"{server.host}:{server.port}"
+    return_value["login_step_2"]["host"] = f"{server.host}"
+    return_value["login_step_2"]["port"] = int(f"{server.port}")
     return_value["login_step_3"]["scheme"] = "http"
-    return_value["login_step_3"]["host"] = f"{server.host}:{server.port}"
+    return_value["login_step_3"]["host"] = f"{server.host}"
+    return_value["login_step_3"]["port"] = int(f"{server.port}")
     return_value["login_step_4"]["scheme"] = "http"
-    return_value["login_step_4"]["host"] = f"{server.host}:{server.port}"
+    return_value["login_step_4"]["host"] = f"{server.host}"
+    return_value["login_step_4"]["port"] = int(f"{server.port}")
     mock_request.return_value = return_value
 
     fake_api.domain = f"{server.host}:{server.port}"
@@ -140,3 +150,169 @@ async def test_login(
     assert result is True, "Error login into GruenbeckCloud"
 
     await server.close()
+
+
+# get_diagnostics
+@patch("pygruenbeck_cloud.const.WEB_REQUESTS")
+@pytest.mark.asyncio
+async def test_get_devices(
+    mock_request,
+    aiohttp_server: any,
+    fake_api: FakeApi,
+):
+    """Test get_devices Method"""
+    username = "fake@mail.com"
+    password = "fakepassword"
+
+    fake_response = fake_api.get_devices_response()
+
+    async def handler_get_devices(request: web.Request) -> web.Response:
+        req1 = WEB_REQUESTS["get_devices"]["path"]
+        if request.path == req1:
+            return web.Response(
+                body=fake_response,
+                headers=fake_api.get_devices_response_headers(),
+                status=200,
+            )
+
+        assert False, f"Incorrect path requested {request.path}"
+
+    app = web.Application()
+    app.add_routes(
+        [
+            getattr(web, WEB_REQUESTS["get_devices"]["method"].lower())(
+                WEB_REQUESTS["get_devices"]["path"], handler_get_devices
+            ),
+        ]
+    )
+
+    server = await aiohttp_server(app)
+
+    # Overwrite server values
+    return_value = WEB_REQUESTS
+    return_value["get_devices"]["scheme"] = "http"
+    return_value["get_devices"]["host"] = f"{server.host}"
+    return_value["get_devices"]["port"] = int(f"{server.port}")
+    mock_request.return_value = return_value
+
+    fake_api.domain = f"{server.host}:{server.port}"
+
+    gruenbeck = PyGruenbeckCloud(
+        username=username,
+        password=password,
+    )
+    gruenbeck._auth_token = GruenbeckAuthToken(
+        access_token="access_token",
+        refresh_token="refresh_token",
+        not_before=datetime.datetime.now(),
+        expires_on=(datetime.datetime.now() + datetime.timedelta(hours=5)),
+        expires_in=(5 * 60 * 60),
+        tenant="tenant",
+    )
+
+    devices = await gruenbeck.get_devices()
+    fake_response_json = json.loads(fake_response)
+    assert len(devices) == len(fake_response_json), "Incorrect number of devices"
+    for i, expected in enumerate(fake_response_json):
+        assert devices[i].type == expected["type"], "Incorrect device type"
+        assert devices[i].has_error == expected["hasError"], "Incorrect device hasError"
+        assert devices[i].id == expected["id"], "Incorrect device id"
+        assert devices[i].series == expected["series"], "Incorrect device series"
+        assert (
+            devices[i].serial_number == expected["serialNumber"]
+        ), "Incorrect device serialNumber"
+        assert devices[i].name == expected["name"], "Incorrect device name"
+        assert devices[i].register == expected["register"], "Incorrect device register"
+
+
+@patch("pygruenbeck_cloud.const.WEB_REQUESTS")
+@pytest.mark.asyncio
+async def test_set_device(
+    mock_request,
+    aiohttp_server: any,
+    fake_api: FakeApi,
+):
+    """Test set_device Method"""
+    username = "fake@mail.com"
+    password = "fakepassword"
+
+    fake_response = fake_api.get_device_infos_response()
+    fake_device = fake_api.fake_device()
+
+    async def handler_get_devices(request: web.Request) -> web.Response:
+        req1 = WEB_REQUESTS["get_devices"]["path"]
+        if request.path == req1:
+            return web.Response(
+                body=fake_api.get_devices_response(),
+                headers=fake_api.get_devices_response_headers(),
+                status=200,
+            )
+
+        assert False, f"Incorrect path requested {request.path}"
+
+    async def handler_get_device_infos_request(request: web.Request) -> web.Response:
+        req1 = PyGruenbeckCloud._placeholder_to_values_str(
+            WEB_REQUESTS["get_device_infos_request"]["path"],
+            {
+                PARAM_NAME_DEVICE_ID: fake_device.id,
+                PARAM_NAME_ENDPOINT: "",
+            },
+        )
+        if request.path == req1:
+            return web.Response(
+                body=fake_response,
+                headers=fake_api.get_device_infos_response_headers(),
+                status=200,
+            )
+
+        assert False, f"Incorrect path requested {request.path}"
+
+    app = web.Application()
+    app.add_routes(
+        [
+            getattr(web, WEB_REQUESTS["get_devices"]["method"].lower())(
+                WEB_REQUESTS["get_devices"]["path"], handler_get_devices
+            ),
+            getattr(web, WEB_REQUESTS["get_device_infos_request"]["method"].lower())(
+                PyGruenbeckCloud._placeholder_to_values_str(
+                    WEB_REQUESTS["get_device_infos_request"]["path"],
+                    {
+                        PARAM_NAME_DEVICE_ID: fake_device.id,
+                        PARAM_NAME_ENDPOINT: "",
+                    },
+                ),
+                handler_get_device_infos_request,
+            ),
+        ]
+    )
+
+    server = await aiohttp_server(app)
+
+    # Overwrite server values
+    return_value = WEB_REQUESTS
+    return_value["get_devices"]["scheme"] = "http"
+    return_value["get_devices"]["host"] = f"{server.host}"
+    return_value["get_devices"]["port"] = int(f"{server.port}")
+    return_value["get_device_infos_request"]["scheme"] = "http"
+    return_value["get_device_infos_request"]["host"] = f"{server.host}"
+    return_value["get_device_infos_request"]["port"] = int(f"{server.port}")
+    mock_request.return_value = return_value
+
+    fake_api.domain = f"{server.host}:{server.port}"
+
+    gruenbeck = PyGruenbeckCloud(
+        username=username,
+        password=password,
+    )
+    gruenbeck._auth_token = GruenbeckAuthToken(
+        access_token="access_token",
+        refresh_token="refresh_token",
+        not_before=datetime.datetime.now(),
+        expires_on=(datetime.datetime.now() + datetime.timedelta(hours=5)),
+        expires_in=(5 * 60 * 60),
+        tenant="tenant",
+    )
+
+    result = await gruenbeck.set_device_from_id(fake_device.id)
+    assert result is True, "Unable to set device by ID"
+    print(gruenbeck.device)

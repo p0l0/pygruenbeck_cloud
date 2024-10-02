@@ -1,4 +1,5 @@
 """pygruenbeck_cloud is a Python library to communicate with the Grünbeck Cloud based Water softeners."""  # noqa: E501
+
 from __future__ import annotations
 
 import base64
@@ -68,6 +69,7 @@ from .exceptions import (
     PyGruenbeckCloudMissingAuthTokenError,
     PyGruenbeckCloudResponseError,
     PyGruenbeckCloudResponseStatusError,
+    PyGruenbeckCloudUpdateParameterError,
 )
 from .models import DailyUsageEntry, Device, DeviceParameters, GruenbeckAuthToken
 
@@ -219,6 +221,7 @@ class PyGruenbeckCloud:
     async def _login_step1(self, code_challenge: str) -> dict[str, str]:
         scheme = WEB_REQUESTS["login_step_1"]["scheme"]
         host = WEB_REQUESTS["login_step_1"]["host"]
+        port = WEB_REQUESTS["login_step_1"]["port"]
         use_cookies = WEB_REQUESTS["login_step_1"]["use_cookies"]
 
         headers = WEB_REQUESTS["login_step_1"]["headers"]
@@ -236,7 +239,7 @@ class PyGruenbeckCloud:
         if self.session and self.session.cookie_jar:
             self.session.cookie_jar.clear()
 
-        url = URL.build(scheme=scheme, host=host, path=path, query=query)
+        url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
         response = await self._http_request(
             url=url,
             headers=headers,
@@ -266,6 +269,7 @@ class PyGruenbeckCloud:
     async def _login_step2(self, auth_data: dict[str, str]) -> bool:
         scheme = WEB_REQUESTS["login_step_2"]["scheme"]
         host = WEB_REQUESTS["login_step_2"]["host"]
+        port = WEB_REQUESTS["login_step_2"]["port"]
         use_cookies = WEB_REQUESTS["login_step_2"]["use_cookies"]
 
         headers = self._placeholder_to_values_dict(
@@ -296,7 +300,7 @@ class PyGruenbeckCloud:
             },
         )
 
-        url = URL.build(scheme=scheme, host=host, path=path, query=query)
+        url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
         response = await self._http_request(
             url=url,
             headers=headers,
@@ -323,6 +327,7 @@ class PyGruenbeckCloud:
     async def _login_step3(self, auth_data: dict[str, str]) -> str:
         scheme = WEB_REQUESTS["login_step_3"]["scheme"]
         host = WEB_REQUESTS["login_step_3"]["host"]
+        port = WEB_REQUESTS["login_step_3"]["port"]
         use_cookies = WEB_REQUESTS["login_step_3"]["use_cookies"]
 
         headers = WEB_REQUESTS["login_step_3"]["headers"]
@@ -342,14 +347,14 @@ class PyGruenbeckCloud:
             },
         )
 
-        url = URL.build(scheme=scheme, host=host, path=path, query=query)
-        # @TODO - expected_status_code and allow_redirects can also come from CONST!
+        url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
+        # @TODO - expected_status_codes and allow_redirects can also come from CONST!
         response = await self._http_request(
             url=url,
             headers=headers,
             method=method,
             data=data,
-            expected_status_code=aiohttp.http.HTTPStatus.FOUND,
+            expected_status_codes=[aiohttp.http.HTTPStatus.FOUND],
             allow_redirects=False,
             use_cookies=use_cookies,
         )
@@ -367,6 +372,7 @@ class PyGruenbeckCloud:
     ) -> dict[str, Any]:
         scheme = WEB_REQUESTS["login_step_4"]["scheme"]
         host = WEB_REQUESTS["login_step_4"]["host"]
+        port = WEB_REQUESTS["login_step_4"]["port"]
         use_cookies = WEB_REQUESTS["login_step_4"]["use_cookies"]
 
         headers = WEB_REQUESTS["login_step_4"]["headers"]
@@ -381,7 +387,7 @@ class PyGruenbeckCloud:
         )
         query = WEB_REQUESTS["login_step_4"]["query_params"]
 
-        url = URL.build(scheme=scheme, host=host, path=path, query=query)
+        url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
         response = await self._http_request(
             url=url,
             headers=headers,
@@ -404,6 +410,7 @@ class PyGruenbeckCloud:
 
         scheme = WEB_REQUESTS["web_token_refresh"]["scheme"]
         host = WEB_REQUESTS["web_token_refresh"]["host"]
+        port = WEB_REQUESTS["web_token_refresh"]["port"]
         use_cookies = WEB_REQUESTS["web_token_refresh"]["use_cookies"]
 
         headers = WEB_REQUESTS["web_token_refresh"]["headers"]
@@ -420,7 +427,7 @@ class PyGruenbeckCloud:
         )
         query = WEB_REQUESTS["web_token_refresh"]["query_params"]
 
-        url = URL.build(scheme=scheme, host=host, path=path, query=query)
+        url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
         response = await self._http_request(
             url=url,
             headers=headers,
@@ -450,6 +457,7 @@ class PyGruenbeckCloud:
 
         scheme = WEB_REQUESTS["get_devices"]["scheme"]
         host = WEB_REQUESTS["get_devices"]["host"]
+        port = WEB_REQUESTS["get_devices"]["port"]
         use_cookies = WEB_REQUESTS["get_devices"]["use_cookies"]
 
         headers = self._placeholder_to_values_dict(
@@ -463,7 +471,7 @@ class PyGruenbeckCloud:
         data = WEB_REQUESTS["get_devices"]["data"]
         query = WEB_REQUESTS["get_devices"]["query_params"]
 
-        url = URL.build(scheme=scheme, host=host, path=path, query=query)
+        url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
         response = await self._http_request(
             url=url,
             headers=headers,
@@ -592,6 +600,7 @@ class PyGruenbeckCloud:
 
         scheme = WEB_REQUESTS["get_device_infos_request"]["scheme"]
         host = WEB_REQUESTS["get_device_infos_request"]["host"]
+        port = WEB_REQUESTS["get_device_infos_request"]["port"]
         use_cookies = WEB_REQUESTS["get_device_infos_request"]["use_cookies"]
 
         headers = self._placeholder_to_values_dict(
@@ -611,7 +620,7 @@ class PyGruenbeckCloud:
         data = WEB_REQUESTS["get_device_infos_request"]["data"]
         query = WEB_REQUESTS["get_device_infos_request"]["query_params"]
 
-        url = URL.build(scheme=scheme, host=host, path=path, query=query)
+        url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
         response = await self._http_request(
             url=url,
             headers=headers,
@@ -649,9 +658,10 @@ class PyGruenbeckCloud:
                         new_value = datetime.strptime(data[key], "%H:%M").time()
                 setattr(parameters, key, new_value)
 
-        # Create dict with right JSON Keys
+        # Get difference with right JSON Keys
+        parameter_json_dict = parameters.to_dict()  # type: ignore[attr-defined]
         changed_data = dict(
-            set(parameters.to_dict().items())  # type: ignore[attr-defined]
+            set(parameter_json_dict.items())
             ^ set(self.device.parameters.to_dict().items())  # type: ignore[attr-defined]  # noqa: E501
         )
 
@@ -659,10 +669,16 @@ class PyGruenbeckCloud:
             self.logger.warning("No changes detected in provided parameters")
             return self.device
 
+        # Create JSON Object with changed data
+        json_data = {}
+        for key in changed_data.keys():
+            json_data[key] = parameter_json_dict[key]
+
         token = await self._get_web_access_token()
 
         scheme = WEB_REQUESTS["update_device_parameter"]["scheme"]
         host = WEB_REQUESTS["update_device_parameter"]["host"]
+        port = WEB_REQUESTS["update_device_parameter"]["port"]
         use_cookies = WEB_REQUESTS["update_device_parameter"]["use_cookies"]
 
         headers = self._placeholder_to_values_dict(
@@ -680,17 +696,30 @@ class PyGruenbeckCloud:
         method = WEB_REQUESTS["update_device_parameter"]["method"]
         query = WEB_REQUESTS["update_device_parameter"]["query_params"]
 
-        url = URL.build(scheme=scheme, host=host, path=path, query=query)
+        url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
         response = await self._http_request(
             url=url,
             headers=headers,
             method=method,
-            json_data=changed_data,
+            json_data=json_data,
             use_cookies=use_cookies,
+            expected_status_codes=[
+                aiohttp.http.HTTPStatus.OK,
+                aiohttp.http.HTTPStatus.INTERNAL_SERVER_ERROR,
+            ],
         )
         if not isinstance(response, dict):
             msg = f"Incorrect response from {url}"
             raise PyGruenbeckCloudResponseError(msg)
+
+        if "error" in response:
+            error = (
+                f"Unable to update parameter {list(data)}, "
+                f"error from API is '{response['error']['type']}'."
+            )
+            self.logger.error(error)
+
+            raise PyGruenbeckCloudUpdateParameterError(error)
 
         # Update current device parameters
         self.device.parameters = DeviceParameters.from_dict(response)  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
@@ -709,6 +738,7 @@ class PyGruenbeckCloud:
 
         scheme = WEB_REQUESTS["regenerate"]["scheme"]
         host = WEB_REQUESTS["regenerate"]["host"]
+        port = WEB_REQUESTS["regenerate"]["port"]
         use_cookies = WEB_REQUESTS["regenerate"]["use_cookies"]
 
         headers = self._placeholder_to_values_dict(
@@ -727,14 +757,14 @@ class PyGruenbeckCloud:
         data = WEB_REQUESTS["regenerate"]["data"]
         query = WEB_REQUESTS["regenerate"]["query_params"]
 
-        url = URL.build(scheme=scheme, host=host, path=path, query=query)
+        url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
         await self._http_request(
             url=url,
             headers=headers,
             method=method,
             json_data=data,
             use_cookies=use_cookies,
-            expected_status_code=202,
+            expected_status_codes=[aiohttp.http.HTTPStatus.ACCEPTED],
         )
 
         return self.device
@@ -753,6 +783,7 @@ class PyGruenbeckCloud:
 
         scheme = WEB_REQUESTS["enter_sd"]["scheme"]
         host = WEB_REQUESTS["enter_sd"]["host"]
+        port = WEB_REQUESTS["enter_sd"]["port"]
         use_cookies = WEB_REQUESTS["enter_sd"]["use_cookies"]
 
         headers = self._placeholder_to_values_dict(
@@ -769,14 +800,14 @@ class PyGruenbeckCloud:
         data = WEB_REQUESTS["enter_sd"]["data"]
         query = WEB_REQUESTS["enter_sd"]["query_params"]
 
-        url = URL.build(scheme=scheme, host=host, path=path, query=query)
-        # @TODO - expected_status_code and allow_redirects can also come from CONST!
+        url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
+        # @TODO - expected_status_codes and allow_redirects can also come from CONST!
         await self._http_request(
             url=url,
             headers=headers,
             method=method,
             data=data,
-            expected_status_code=202,
+            expected_status_codes=[aiohttp.http.HTTPStatus.ACCEPTED],
             use_cookies=use_cookies,
         )
 
@@ -792,6 +823,7 @@ class PyGruenbeckCloud:
 
         scheme = WEB_REQUESTS["refresh_sd"]["scheme"]
         host = WEB_REQUESTS["refresh_sd"]["host"]
+        port = WEB_REQUESTS["refresh_sd"]["port"]
         use_cookies = WEB_REQUESTS["refresh_sd"]["use_cookies"]
 
         headers = self._placeholder_to_values_dict(
@@ -808,14 +840,14 @@ class PyGruenbeckCloud:
         data = WEB_REQUESTS["refresh_sd"]["data"]
         query = WEB_REQUESTS["refresh_sd"]["query_params"]
 
-        url = URL.build(scheme=scheme, host=host, path=path, query=query)
-        # @TODO - expected_status_code and allow_redirects can also come from CONST!
+        url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
+        # @TODO - expected_status_codes and allow_redirects can also come from CONST!
         await self._http_request(
             url=url,
             headers=headers,
             method=method,
             data=data,
-            expected_status_code=202,
+            expected_status_codes=[aiohttp.http.HTTPStatus.ACCEPTED],
             use_cookies=use_cookies,
         )
 
@@ -831,6 +863,7 @@ class PyGruenbeckCloud:
 
         scheme = WEB_REQUESTS["leave_sd"]["scheme"]
         host = WEB_REQUESTS["leave_sd"]["host"]
+        port = WEB_REQUESTS["leave_sd"]["port"]
         use_cookies = WEB_REQUESTS["leave_sd"]["use_cookies"]
 
         headers = self._placeholder_to_values_dict(
@@ -847,14 +880,14 @@ class PyGruenbeckCloud:
         data = WEB_REQUESTS["leave_sd"]["data"]
         query = WEB_REQUESTS["leave_sd"]["query_params"]
 
-        url = URL.build(scheme=scheme, host=host, path=path, query=query)
-        # @TODO - expected_status_code and allow_redirects can also come from CONST!
+        url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
+        # @TODO - expected_status_codes and allow_redirects can also come from CONST!
         await self._http_request(
             url=url,
             headers=headers,
             method=method,
             data=data,
-            expected_status_code=202,
+            expected_status_codes=[aiohttp.http.HTTPStatus.ACCEPTED],
             use_cookies=use_cookies,
         )
 
@@ -865,12 +898,15 @@ class PyGruenbeckCloud:
         url: StrOrURL,
         data: Any = None,
         json_data: Any = None,
-        expected_status_code: int = aiohttp.http.HTTPStatus.OK,
+        expected_status_codes: list[int] | None = None,
         method: str = aiohttp.hdrs.METH_GET,
         allow_redirects: bool = False,
         use_cookies: bool = False,
     ) -> str | dict[Any, Any] | list[Any]:
         """Execute HTTP request."""
+        if expected_status_codes is None:
+            expected_status_codes = [aiohttp.http.HTTPStatus.OK]
+
         if self.session is None:
             self.session = ClientSession()
             self._close_session = True
@@ -900,8 +936,10 @@ class PyGruenbeckCloud:
                 self._response_log.append(
                     {
                         "url": str(url),
+                        "req_method": method,
                         "req_headers": headers,
-                        "red_data": data,
+                        "req_data": data,
+                        "req_json_data": json_data,
                         "resp_headers": resp.headers,
                         "resp_status": str(resp.status),
                         "response": str(await resp.text()),
@@ -916,10 +954,10 @@ class PyGruenbeckCloud:
                     msg = f"Response from URL {url} has incorrect type {type(response)}"
                     raise PyGruenbeckCloudResponseError(msg)
 
-                if resp.status != expected_status_code:
+                if resp.status not in expected_status_codes:
                     error = (
                         f"Response status code for {url} is {resp.status},"
-                        f" we expected {expected_status_code}."
+                        f" we expected one of {expected_status_codes}."
                     )
                     self.logger.error(error)
 
@@ -1048,6 +1086,7 @@ class PyGruenbeckCloud:
         """Start WebSocket connection negotiation."""
         scheme = WEB_REQUESTS["start_ws_negotiation"]["scheme"]
         host = WEB_REQUESTS["start_ws_negotiation"]["host"]
+        port = WEB_REQUESTS["start_ws_negotiation"]["port"]
         use_cookies = WEB_REQUESTS["start_ws_negotiation"]["use_cookies"]
 
         headers = self._placeholder_to_values_dict(
@@ -1060,7 +1099,7 @@ class PyGruenbeckCloud:
 
         query = WEB_REQUESTS["start_ws_negotiation"]["query_params"]
 
-        url = URL.build(scheme=scheme, host=host, path=path, query=query)
+        url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
         response = await self._http_request(
             url=url,
             headers=headers,
@@ -1079,6 +1118,7 @@ class PyGruenbeckCloud:
         """Get WebSocket Connection ID."""
         scheme = WEB_REQUESTS["get_ws_connection_id"]["scheme"]
         host = WEB_REQUESTS["get_ws_connection_id"]["host"]
+        port = WEB_REQUESTS["get_ws_connection_id"]["port"]
         use_cookies = WEB_REQUESTS["get_ws_connection_id"]["use_cookies"]
 
         headers = self._placeholder_to_values_dict(
@@ -1091,7 +1131,7 @@ class PyGruenbeckCloud:
 
         query = WEB_REQUESTS["get_ws_connection_id"]["query_params"]
 
-        url = URL.build(scheme=scheme, host=host, path=path, query=query)
+        url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
         response = await self._http_request(
             url=url,
             headers=headers,

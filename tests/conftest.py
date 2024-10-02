@@ -7,6 +7,8 @@ import os.path
 from multidict import CIMultiDict
 import pytest
 
+from pygruenbeck_cloud.models import Device
+
 DIR_NAME = os.path.dirname(__file__)
 
 
@@ -205,23 +207,67 @@ class FakeApi:
             ]
         )
 
+    def get_devices_response(self) -> str:
+        """Fixture for get_devices response."""
+        with open(f"{DIR_NAME}/responses/get_devices.txt", encoding="utf-8") as file:
+            data = file.read()
+
+        return data
+
+    def get_devices_response_headers(self) -> CIMultiDict:
+        """Fixture for get devices response headers."""
+        return CIMultiDict(
+            [
+                ("Content-Type", "application/json; charset=utf-8"),
+                ("Strict-Transport-Security", "max-age=31536000; includeSubDomains"),
+                (
+                    "Request-Context",
+                    "appId=cid-v1:9bf1e130-ec63-42ac-b6a7-7ce1131e9176",
+                ),
+            ]
+        )
+
+    def get_device_infos_response(self) -> str:
+        """Fixture for get_device_infos response."""
+        with open(
+            f"{DIR_NAME}/responses/get_device_infos.txt", encoding="utf-8"
+        ) as file:
+            data = file.read()
+
+        return data
+
+    def get_device_infos_response_headers(self) -> CIMultiDict:
+        """Fixture for get devices infos response headers."""
+        return CIMultiDict(
+            [
+                ("Content-Type", "application/json; charset=utf-8"),
+                ("Strict-Transport-Security", "max-age=31536000; includeSubDomains"),
+                (
+                    "Request-Context",
+                    "appId=cid-v1:9bf1e130-ec63-42ac-b6a7-7ce1131e9176",
+                ),
+            ]
+        )
+
+    def fake_device(self) -> Device:
+        """Fixture returning fake Device object."""
+        return Device.from_dict(  # pylint: disable=no-member
+            {
+                "type": 18,
+                "hasError": True,
+                "id": "softliQ.D/6ZF9Z5KAA2",
+                "series": "softliQ.D",
+                "serialNumber": "6ZF9Z5KAA2",
+                "name": "softIQ:SD18",
+                "register": True,
+            }
+        )
+
 
 @pytest.fixture
 def fake_api():
     """Fixture for our Fake API."""
     return FakeApi()
-
-
-@pytest.fixture()
-def get_devices_response_headers() -> CIMultiDict:
-    """Fixture for get devices response headers."""
-    return CIMultiDict(
-        [
-            ("Content-Type", "application/json; charset=utf-8"),
-            ("Strict-Transport-Security", "max-age=31536000; includeSubDomains"),
-            ("Request-Context", "appId=cid-v1:9bf1e130-ec63-42ac-b6a7-7ce1131e9176"),
-        ]
-    )
 
 
 @pytest.fixture()

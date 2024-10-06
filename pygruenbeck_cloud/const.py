@@ -42,7 +42,7 @@ LOGIN_REFRESH_TIME_BEFORE_EXPIRE = timedelta(minutes=10)
 # HTTP API Details
 API_SCHEME: Final = "https"
 API_HOST: Final = "prod-eu-gruenbeck-api.azurewebsites.net"
-API_VERSION: Final = "2020-08-03"
+API_VERSION: Final = "2024-05-02"
 API_GET_MG_INFOS_ENDPOINT: Final = ""  # Endpoint is empty for normal MG Infos
 API_GET_MG_INFOS_ENDPOINT_PARAMETERS: Final = "parameters"
 API_GET_MG_INFOS_ENDPOINT_SALT_MEASUREMENTS: Final = "measurements/salt"

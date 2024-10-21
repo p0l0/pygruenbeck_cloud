@@ -1,4 +1,5 @@
 """Conftest for pygruenbeck_cloud."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -249,10 +250,32 @@ class FakeApi:
             ]
         )
 
-    def fake_device(self) -> Device:
+    def get_device_infos_se_response(self) -> str:
+        """Fixture for get_device_infos response."""
+        with open(
+            f"{DIR_NAME}/responses/get_device_infos_SE.txt", encoding="utf-8"
+        ) as file:
+            data = file.read()
+
+        return data
+
+    def get_device_infos_se_response_headers(self) -> CIMultiDict:
+        """Fixture for get devices infos response headers."""
+        return CIMultiDict(
+            [
+                ("Content-Type", "application/json; charset=utf-8"),
+                ("Strict-Transport-Security", "max-age=31536000; includeSubDomains"),
+                (
+                    "Request-Context",
+                    "appId=cid-v1:9bf1e130-ec63-42ac-b6a7-7ce1131e9176",
+                ),
+            ]
+        )
+
+    def fake_device(self, series: str = "SD") -> Device:
         """Fixture returning fake Device object."""
-        return Device.from_dict(  # pylint: disable=no-member
-            {
+        devices = {
+            "SD": {
                 "type": 18,
                 "hasError": True,
                 "id": "softliQ.D/6ZF9Z5KAA2",
@@ -260,8 +283,18 @@ class FakeApi:
                 "serialNumber": "6ZF9Z5KAA2",
                 "name": "softIQ:SD18",
                 "register": True,
-            }
-        )
+            },
+            "SE": {
+                "type": 118,
+                "hasError": False,
+                "id": "softliQ.SE/BS110",
+                "series": "softliQ.SE",
+                "serialNumber": "BS110",
+                "name": "softIQ:SE18",
+                "register": True,
+            },
+        }
+        return Device.from_dict(devices[series])  # pylint: disable=no-member
 
 
 @pytest.fixture

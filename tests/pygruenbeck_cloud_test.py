@@ -405,6 +405,6 @@ async def test_get_device_se(
         tenant="tenant",
     )
 
-    devices = await gruenbeck.get_devices()
+    await gruenbeck.get_devices()
     result = await gruenbeck.set_device_from_id(fake_device.id)
     assert result is True, "Unable to set device by ID"

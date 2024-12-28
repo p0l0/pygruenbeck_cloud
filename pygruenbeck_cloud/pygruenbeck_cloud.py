@@ -807,7 +807,7 @@ class PyGruenbeckCloud:
             headers=headers,
             method=method,
             data=data,
-            expected_status_codes=[aiohttp.http.HTTPStatus.ACCEPTED],
+            expected_status_codes=[aiohttp.http.HTTPStatus.ACCEPTED, aiohttp.http.HTTPStatus.OK],
             use_cookies=use_cookies,
         )
 
@@ -847,7 +847,7 @@ class PyGruenbeckCloud:
             headers=headers,
             method=method,
             data=data,
-            expected_status_codes=[aiohttp.http.HTTPStatus.ACCEPTED],
+            expected_status_codes=[aiohttp.http.HTTPStatus.ACCEPTED, aiohttp.http.HTTPStatus.OK],
             use_cookies=use_cookies,
         )
 

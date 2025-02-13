@@ -61,10 +61,10 @@ async def test_login(
                 assert False, f"Incorrect value for {key} parameter: {value}"
 
         # Check if cookies are set
-        print("Headers: ")
-        print(request.headers)
-        print("Cookies: ")
-        print(request.cookies)
+        # print("Headers: ")
+        # print(request.headers)
+        # print("Cookies: ")
+        # print(request.cookies)
 
         req2 = WEB_REQUESTS["login_step_2"]["path"].format(**tenant)
         if request.path == req2:
@@ -315,4 +315,96 @@ async def test_set_device(
 
     result = await gruenbeck.set_device_from_id(fake_device.id)
     assert result is True, "Unable to set device by ID"
-    print(gruenbeck.device)
+
+
+@patch("pygruenbeck_cloud.const.WEB_REQUESTS")
+@pytest.mark.asyncio
+async def test_get_device_se(
+    mock_request,
+    aiohttp_server: any,
+    fake_api: FakeApi,
+):
+    """Test set_device Method"""
+    username = "fake@mail.com"
+    password = "fakepassword"
+
+    fake_response = fake_api.get_device_infos_se_response()
+    fake_device = fake_api.fake_device("SE")
+
+    async def handler_get_devices(request: web.Request) -> web.Response:
+        req1 = WEB_REQUESTS["get_devices"]["path"]
+        if request.path == req1:
+            return web.Response(
+                body=fake_api.get_devices_response(),
+                headers=fake_api.get_devices_response_headers(),
+                status=200,
+            )
+
+        assert False, f"Incorrect path requested {request.path}"
+
+    async def handler_get_device_infos_se_request(request: web.Request) -> web.Response:
+        req1 = PyGruenbeckCloud._placeholder_to_values_str(
+            WEB_REQUESTS["get_device_infos_request"]["path"],
+            {
+                PARAM_NAME_DEVICE_ID: fake_device.id,
+                PARAM_NAME_ENDPOINT: "",
+            },
+        )
+        if request.path == req1:
+            return web.Response(
+                body=fake_response,
+                headers=fake_api.get_device_infos_se_response_headers(),
+                status=200,
+            )
+
+        assert False, f"Incorrect path requested {request.path}"
+
+    app = web.Application()
+    app.add_routes(
+        [
+            getattr(web, WEB_REQUESTS["get_devices"]["method"].lower())(
+                WEB_REQUESTS["get_devices"]["path"], handler_get_devices
+            ),
+            getattr(web, WEB_REQUESTS["get_device_infos_request"]["method"].lower())(
+                PyGruenbeckCloud._placeholder_to_values_str(
+                    WEB_REQUESTS["get_device_infos_request"]["path"],
+                    {
+                        PARAM_NAME_DEVICE_ID: fake_device.id,
+                        PARAM_NAME_ENDPOINT: "",
+                    },
+                ),
+                handler_get_device_infos_se_request,
+            ),
+        ]
+    )
+
+    server = await aiohttp_server(app)
+
+    # Overwrite server values
+    return_value = WEB_REQUESTS
+    return_value["get_devices"]["scheme"] = "http"
+    return_value["get_devices"]["host"] = f"{server.host}"
+    return_value["get_devices"]["port"] = int(f"{server.port}")
+    return_value["get_device_infos_request"]["scheme"] = "http"
+    return_value["get_device_infos_request"]["host"] = f"{server.host}"
+    return_value["get_device_infos_request"]["port"] = int(f"{server.port}")
+    mock_request.return_value = return_value
+
+    fake_api.domain = f"{server.host}:{server.port}"
+
+    gruenbeck = PyGruenbeckCloud(
+        username=username,
+        password=password,
+    )
+    gruenbeck._auth_token = GruenbeckAuthToken(
+        access_token="access_token",
+        refresh_token="refresh_token",
+        not_before=datetime.datetime.now(),
+        expires_on=(datetime.datetime.now() + datetime.timedelta(hours=5)),
+        expires_in=(5 * 60 * 60),
+        tenant="tenant",
+    )
+
+    await gruenbeck.get_devices()
+    result = await gruenbeck.set_device_from_id(fake_device.id)
+    assert result is True, "Unable to set device by ID"

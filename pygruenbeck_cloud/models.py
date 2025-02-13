@@ -43,6 +43,7 @@ class DeviceError:
     is_resolved: bool
     message: str
     type: str
+    error_code: int
     date: datetime.datetime = field(
         metadata=json_config(
             encoder=lambda value: value.strftime("%Y-%m-%dT%H:%M:%S.%f"),

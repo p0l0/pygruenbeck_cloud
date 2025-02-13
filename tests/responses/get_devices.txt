@@ -1,1 +1,1 @@
-[{"type": 18, "hasError": true, "id": "softliQ.D/6ZF9Z5KAA2", "series": "softliQ.D", "serialNumber": "6ZF9Z5KAA2", "name": "softIQ:SD18", "register": true}]
+[{"type": 18, "hasError": true, "id": "softliQ.D/6ZF9Z5KAA2", "series": "softliQ.D", "serialNumber": "6ZF9Z5KAA2", "name": "softIQ:SD18", "register": true},{"type": 118, "hasError": false, "id": "softliQ.SE/BS110", "series": "softliQ.SE", "serialNumber": "BS110", "name": "softIQ:SE18", "register": true}]

@@ -485,7 +485,7 @@ class PyGruenbeckCloud:
             raise PyGruenbeckCloudResponseError(msg)
 
         for device in response:
-            if "soft" in device["id"]:
+            if "soft" in device["series"]:
                 devices.append(Device.from_dict(device))  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
 
         return devices
@@ -764,7 +764,10 @@ class PyGruenbeckCloud:
             method=method,
             json_data=data,
             use_cookies=use_cookies,
-            expected_status_codes=[aiohttp.http.HTTPStatus.ACCEPTED],
+            expected_status_codes=[
+                aiohttp.http.HTTPStatus.ACCEPTED,
+                aiohttp.http.HTTPStatus.OK,
+            ],
         )
 
         return self.device
@@ -807,7 +810,10 @@ class PyGruenbeckCloud:
             headers=headers,
             method=method,
             data=data,
-            expected_status_codes=[aiohttp.http.HTTPStatus.ACCEPTED],
+            expected_status_codes=[
+                aiohttp.http.HTTPStatus.ACCEPTED,
+                aiohttp.http.HTTPStatus.OK,
+            ],
             use_cookies=use_cookies,
         )
 
@@ -847,7 +853,10 @@ class PyGruenbeckCloud:
             headers=headers,
             method=method,
             data=data,
-            expected_status_codes=[aiohttp.http.HTTPStatus.ACCEPTED],
+            expected_status_codes=[
+                aiohttp.http.HTTPStatus.ACCEPTED,
+                aiohttp.http.HTTPStatus.OK,
+            ],
             use_cookies=use_cookies,
         )
 
@@ -887,7 +896,10 @@ class PyGruenbeckCloud:
             headers=headers,
             method=method,
             data=data,
-            expected_status_codes=[aiohttp.http.HTTPStatus.ACCEPTED],
+            expected_status_codes=[
+                aiohttp.http.HTTPStatus.ACCEPTED,
+                aiohttp.http.HTTPStatus.OK,
+            ],
             use_cookies=use_cookies,
         )
 

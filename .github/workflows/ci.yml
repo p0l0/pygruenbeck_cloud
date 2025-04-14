@@ -97,4 +97,4 @@ jobs:
         coverage report # --fail-under=94 <- Will be added as soon as we have more implemented
         coverage xml
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v5.1.2
+      uses: codecov/codecov-action@v5.4.2

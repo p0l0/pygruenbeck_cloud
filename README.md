@@ -13,7 +13,7 @@
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=f8b424)](https://github.com/pre-commit/pre-commit)
 ![License](https://img.shields.io/github/license/p0l0/pygruenbeck_cloud)
 
-`pygruenbeck_cloud` is a Python 3 (>= 3.11) library to communicate with the Grünbeck Cloud based Water softeners.
+`pygruenbeck_cloud` is a Python 3 (>= 3.12) library to communicate with the Grünbeck Cloud based Water softeners.
 
 It is intended to be used in custom_component [hagruenbeck_cloud](https://github.com/p0l0/hagruenbeck_cloud) for [Home Assistant](https://www.home-assistant.io/).
 

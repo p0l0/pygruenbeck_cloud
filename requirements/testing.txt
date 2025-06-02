@@ -13,4 +13,4 @@ setuptools==78.1.1
 build==1.2.2.post1
 tox==4.25.0
 mypy==1.14.1
-pre-commit==4.0.1
+pre-commit==4.2.0

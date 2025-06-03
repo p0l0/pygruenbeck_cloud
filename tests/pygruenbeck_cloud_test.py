@@ -12,16 +12,21 @@ import pytest
 
 from pygruenbeck_cloud import PyGruenbeckCloud
 from pygruenbeck_cloud.const import (
+    API_GET_MG_INFOS_ENDPOINT_PARAMETERS,
     PARAM_NAME_DEVICE_ID,
     PARAM_NAME_ENDPOINT,
     PARAM_NAME_PASSWORD,
     PARAM_NAME_TENANT,
     PARAM_NAME_USERNAME,
+    PARAMETER_LANGUAGES,
+    PARAMETER_LED_MODES,
+    PARAMETER_OPERATION_MODES,
+    PARAMETER_REGENERATION_MODES,
     WEB_REQUESTS,
 )
 from pygruenbeck_cloud.models import GruenbeckAuthToken
 
-from tests.conftest import FakeApi
+from tests.conftest import FakeApi, assert_response
 
 
 @patch("pygruenbeck_cloud.const.WEB_REQUESTS")
@@ -324,7 +329,7 @@ async def test_get_device_se(
     aiohttp_server: any,
     fake_api: FakeApi,
 ):
-    """Test set_device Method"""
+    """Test set_device Method for SE Device"""
     username = "fake@mail.com"
     password = "fakepassword"
 
@@ -408,3 +413,455 @@ async def test_get_device_se(
     await gruenbeck.get_devices()
     result = await gruenbeck.set_device_from_id(fake_device.id)
     assert result is True, "Unable to set device by ID"
+
+
+@patch("pygruenbeck_cloud.const.WEB_REQUESTS")
+@pytest.mark.asyncio
+async def test_get_device_infos_parameters(
+    mock_request,
+    aiohttp_server: any,
+    fake_api: FakeApi,
+):
+    """Test get_device_infos_parameters Method"""
+    username = "fake@mail.com"
+    password = "fakepassword"
+
+    fake_response = fake_api.get_device_infos_parameters_response()
+    fake_device_infos_response = fake_api.get_device_infos_response()
+    fake_device = fake_api.fake_device()
+
+    async def handler_get_devices(request: web.Request) -> web.Response:
+        req1 = WEB_REQUESTS["get_devices"]["path"]
+        if request.path == req1:
+            return web.Response(
+                body=fake_api.get_devices_response(),
+                headers=fake_api.get_devices_response_headers(),
+                status=200,
+            )
+
+        assert False, f"Incorrect path requested {request.path}"
+
+    async def handler_get_device_infos_request(request: web.Request) -> web.Response:
+        req1 = PyGruenbeckCloud._placeholder_to_values_str(
+            WEB_REQUESTS["get_device_infos_request"]["path"],
+            {
+                PARAM_NAME_DEVICE_ID: fake_device.id,
+                PARAM_NAME_ENDPOINT: "",
+            },
+        )
+        if request.path == req1:
+            return web.Response(
+                body=fake_device_infos_response,
+                headers=fake_api.get_device_infos_response_headers(),
+                status=200,
+            )
+
+        assert False, f"Incorrect path requested {request.path}"
+
+    async def handler_get_device_infos_parameters_request(
+        request: web.Request,
+    ) -> web.Response:
+        req1 = PyGruenbeckCloud._placeholder_to_values_str(
+            WEB_REQUESTS["get_device_infos_request"]["path"],
+            {
+                PARAM_NAME_DEVICE_ID: fake_device.id,
+                PARAM_NAME_ENDPOINT: API_GET_MG_INFOS_ENDPOINT_PARAMETERS,
+            },
+        )
+        if request.path == req1:
+            return web.Response(
+                body=fake_response,
+                headers=fake_api.get_device_infos_parameters_response_headers(),
+                status=200,
+            )
+
+        assert False, f"Incorrect path requested {request.path}"
+
+    app = web.Application()
+    app.add_routes(
+        [
+            getattr(web, WEB_REQUESTS["get_devices"]["method"].lower())(
+                WEB_REQUESTS["get_devices"]["path"], handler_get_devices
+            ),
+            getattr(web, WEB_REQUESTS["get_device_infos_request"]["method"].lower())(
+                PyGruenbeckCloud._placeholder_to_values_str(
+                    WEB_REQUESTS["get_device_infos_request"]["path"],
+                    {
+                        PARAM_NAME_DEVICE_ID: fake_device.id,
+                        PARAM_NAME_ENDPOINT: "",
+                    },
+                ),
+                handler_get_device_infos_request,
+            ),
+            getattr(web, WEB_REQUESTS["get_device_infos_request"]["method"].lower())(
+                PyGruenbeckCloud._placeholder_to_values_str(
+                    WEB_REQUESTS["get_device_infos_request"]["path"],
+                    {
+                        PARAM_NAME_DEVICE_ID: fake_device.id,
+                        PARAM_NAME_ENDPOINT: API_GET_MG_INFOS_ENDPOINT_PARAMETERS,
+                    },
+                ),
+                handler_get_device_infos_parameters_request,
+            ),
+        ]
+    )
+
+    server = await aiohttp_server(app)
+
+    # Overwrite server values
+    return_value = WEB_REQUESTS
+    return_value["get_devices"]["scheme"] = "http"
+    return_value["get_devices"]["host"] = f"{server.host}"
+    return_value["get_devices"]["port"] = int(f"{server.port}")
+    return_value["get_device_infos_request"]["scheme"] = "http"
+    return_value["get_device_infos_request"]["host"] = f"{server.host}"
+    return_value["get_device_infos_request"]["port"] = int(f"{server.port}")
+    mock_request.return_value = return_value
+
+    fake_api.domain = f"{server.host}:{server.port}"
+
+    gruenbeck = PyGruenbeckCloud(
+        username=username,
+        password=password,
+    )
+    gruenbeck._auth_token = GruenbeckAuthToken(
+        access_token="access_token",
+        refresh_token="refresh_token",
+        not_before=datetime.datetime.now(),
+        expires_on=(datetime.datetime.now() + datetime.timedelta(hours=5)),
+        expires_in=(5 * 60 * 60),
+        tenant="tenant",
+    )
+
+    result = await gruenbeck.set_device_from_id(fake_device.id)
+    assert result is True, "Unable to set device by ID"
+    result = await gruenbeck.get_device_infos_parameters()
+
+    assert_response(
+        result.parameters.dlst,
+        fake_response,
+        "pdlstauto",
+        "Incorrect parsing of daylight saving time",
+    )
+
+    assert_response(
+        result.parameters.water_hardness_unit,
+        fake_response,
+        "phunit",
+        "Incorrect parsing of water hardness unit",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.language,
+        fake_response,
+        "planguage",
+        "Incorrect parsing of current language",
+        next(iter(PARAMETER_LANGUAGES)),
+    )
+
+    assert_response(
+        result.parameters.mode,
+        fake_response,
+        "pmode",
+        "Incorrect parsing of working mode",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.mode_individual_monday,
+        fake_response,
+        "pmodemo",
+        "Incorrect parsing of working mode monday",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.mode_individual_tuesday,
+        fake_response,
+        "pmodetu",
+        "Incorrect parsing of working mode tuesday",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.mode_individual_wednesday,
+        fake_response,
+        "pmodewe",
+        "Incorrect parsing of working mode wednesday",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.mode_individual_thursday,
+        fake_response,
+        "pmodeth",
+        "Incorrect parsing of working mode thursday",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.mode_individual_friday,
+        fake_response,
+        "pmodefr",
+        "Incorrect parsing of working mode friday",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.mode_individual_saturday,
+        fake_response,
+        "pmodesa",
+        "Incorrect parsing of working mode saturday",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.mode_individual_sunday,
+        fake_response,
+        "pmodesu",
+        "Incorrect parsing of working mode sunday",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.regeneration_mode,
+        fake_response,
+        "pregmode",
+        "Incorrect parsing of regeneration mode",
+        next(iter(PARAMETER_REGENERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.led_ring_mode,
+        fake_response,
+        "pled",
+        "Incorrect parsing of illuminated LED ring mode",
+        next(iter(PARAMETER_LED_MODES)),
+    )
+
+
+@patch("pygruenbeck_cloud.const.WEB_REQUESTS")
+@pytest.mark.asyncio
+async def test_get_device_infos_se_parameters(
+    mock_request,
+    aiohttp_server: any,
+    fake_api: FakeApi,
+):
+    """Test get_device_infos_parameters Method for SE Device"""
+    username = "fake@mail.com"
+    password = "fakepassword"
+
+    fake_response = fake_api.get_device_infos_parameters_se_response()
+    fake_device_infos_response = fake_api.get_device_infos_se_response()
+    fake_device = fake_api.fake_device("SE")
+
+    async def handler_get_devices(request: web.Request) -> web.Response:
+        req1 = WEB_REQUESTS["get_devices"]["path"]
+        if request.path == req1:
+            return web.Response(
+                body=fake_api.get_devices_response(),
+                headers=fake_api.get_devices_response_headers(),
+                status=200,
+            )
+
+        assert False, f"Incorrect path requested {request.path}"
+
+    async def handler_get_device_infos_request(request: web.Request) -> web.Response:
+        req1 = PyGruenbeckCloud._placeholder_to_values_str(
+            WEB_REQUESTS["get_device_infos_request"]["path"],
+            {
+                PARAM_NAME_DEVICE_ID: fake_device.id,
+                PARAM_NAME_ENDPOINT: "",
+            },
+        )
+        if request.path == req1:
+            return web.Response(
+                body=fake_device_infos_response,
+                headers=fake_api.get_device_infos_response_headers(),
+                status=200,
+            )
+
+        assert False, f"Incorrect path requested {request.path}"
+
+    async def handler_get_device_infos_parameters_request(
+        request: web.Request,
+    ) -> web.Response:
+        req1 = PyGruenbeckCloud._placeholder_to_values_str(
+            WEB_REQUESTS["get_device_infos_request"]["path"],
+            {
+                PARAM_NAME_DEVICE_ID: fake_device.id,
+                PARAM_NAME_ENDPOINT: API_GET_MG_INFOS_ENDPOINT_PARAMETERS,
+            },
+        )
+        if request.path == req1:
+            return web.Response(
+                body=fake_response,
+                headers=fake_api.get_device_infos_parameters_response_headers(),
+                status=200,
+            )
+
+        assert False, f"Incorrect path requested {request.path}"
+
+    app = web.Application()
+    app.add_routes(
+        [
+            getattr(web, WEB_REQUESTS["get_devices"]["method"].lower())(
+                WEB_REQUESTS["get_devices"]["path"], handler_get_devices
+            ),
+            getattr(web, WEB_REQUESTS["get_device_infos_request"]["method"].lower())(
+                PyGruenbeckCloud._placeholder_to_values_str(
+                    WEB_REQUESTS["get_device_infos_request"]["path"],
+                    {
+                        PARAM_NAME_DEVICE_ID: fake_device.id,
+                        PARAM_NAME_ENDPOINT: "",
+                    },
+                ),
+                handler_get_device_infos_request,
+            ),
+            getattr(web, WEB_REQUESTS["get_device_infos_request"]["method"].lower())(
+                PyGruenbeckCloud._placeholder_to_values_str(
+                    WEB_REQUESTS["get_device_infos_request"]["path"],
+                    {
+                        PARAM_NAME_DEVICE_ID: fake_device.id,
+                        PARAM_NAME_ENDPOINT: API_GET_MG_INFOS_ENDPOINT_PARAMETERS,
+                    },
+                ),
+                handler_get_device_infos_parameters_request,
+            ),
+        ]
+    )
+
+    server = await aiohttp_server(app)
+
+    # Overwrite server values
+    return_value = WEB_REQUESTS
+    return_value["get_devices"]["scheme"] = "http"
+    return_value["get_devices"]["host"] = f"{server.host}"
+    return_value["get_devices"]["port"] = int(f"{server.port}")
+    return_value["get_device_infos_request"]["scheme"] = "http"
+    return_value["get_device_infos_request"]["host"] = f"{server.host}"
+    return_value["get_device_infos_request"]["port"] = int(f"{server.port}")
+    mock_request.return_value = return_value
+
+    fake_api.domain = f"{server.host}:{server.port}"
+
+    gruenbeck = PyGruenbeckCloud(
+        username=username,
+        password=password,
+    )
+    gruenbeck._auth_token = GruenbeckAuthToken(
+        access_token="access_token",
+        refresh_token="refresh_token",
+        not_before=datetime.datetime.now(),
+        expires_on=(datetime.datetime.now() + datetime.timedelta(hours=5)),
+        expires_in=(5 * 60 * 60),
+        tenant="tenant",
+    )
+
+    result = await gruenbeck.set_device_from_id(fake_device.id)
+    assert result is True, "Unable to set device by ID"
+    result = await gruenbeck.get_device_infos_parameters()
+
+    assert_response(
+        result.parameters.dlst,
+        fake_response,
+        "pdlstauto",
+        "Incorrect parsing of daylight saving time",
+    )
+
+    assert_response(
+        result.parameters.water_hardness_unit,
+        fake_response,
+        "phunit",
+        "Incorrect parsing of water hardness unit",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.language,
+        fake_response,
+        "planguage",
+        "Incorrect parsing of current language",
+        next(iter(PARAMETER_LANGUAGES)),
+    )
+
+    assert_response(
+        result.parameters.mode,
+        fake_response,
+        "pmode",
+        "Incorrect parsing of working mode",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.mode_individual_monday,
+        fake_response,
+        "pmodemo",
+        "Incorrect parsing of working mode monday",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.mode_individual_tuesday,
+        fake_response,
+        "pmodetu",
+        "Incorrect parsing of working mode tuesday",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.mode_individual_wednesday,
+        fake_response,
+        "pmodewe",
+        "Incorrect parsing of working mode wednesday",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.mode_individual_thursday,
+        fake_response,
+        "pmodeth",
+        "Incorrect parsing of working mode thursday",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.mode_individual_friday,
+        fake_response,
+        "pmodefr",
+        "Incorrect parsing of working mode friday",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.mode_individual_saturday,
+        fake_response,
+        "pmodesa",
+        "Incorrect parsing of working mode saturday",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.mode_individual_sunday,
+        fake_response,
+        "pmodesu",
+        "Incorrect parsing of working mode sunday",
+        next(iter(PARAMETER_OPERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.regeneration_mode,
+        fake_response,
+        "pregmode",
+        "Incorrect parsing of regeneration mode",
+        next(iter(PARAMETER_REGENERATION_MODES)),
+    )
+
+    assert_response(
+        result.parameters.led_ring_mode,
+        fake_response,
+        "pled",
+        "Incorrect parsing of illuminated LED ring mode",
+        next(iter(PARAMETER_LED_MODES)),
+    )

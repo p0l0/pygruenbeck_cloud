@@ -13,6 +13,11 @@ from pygruenbeck_cloud.const import (
     API_WS_RESPONSE_TYPE_DATA_TARGETS,
     API_WS_RESPONSE_TYPE_PING,
     LOGIN_REFRESH_TIME_BEFORE_EXPIRE,
+    PARAMETER_LANGUAGES,
+    PARAMETER_LED_MODES,
+    PARAMETER_OPERATION_MODES,
+    PARAMETER_REGENERATION_MODES,
+    PARAMETER_WATER_UNITS,
 )
 from pygruenbeck_cloud.exceptions import PyGruenbeckCloudError
 
@@ -110,7 +115,12 @@ class DeviceParameters:
     # Water settings
     water_hardness_unit: int | None = field(
         default=None,
-        metadata=json_config(field_name="phunit"),
+        metadata=json_config(
+            field_name="phunit",
+            decoder=lambda value: (
+                value if value is not False else next(iter(PARAMETER_WATER_UNITS))
+            ),
+        ),
     )
     raw_water_hardness: int | None = field(
         default=None,
@@ -124,41 +134,88 @@ class DeviceParameters:
     # Working mode
     mode: int | None = field(
         default=None,
-        metadata=json_config(field_name="pmode"),
+        metadata=json_config(
+            field_name="pmode",
+            decoder=lambda value: (
+                value if value is not False else next(iter(PARAMETER_OPERATION_MODES))
+            ),
+        ),
     )
     mode_individual_monday: int | None = field(
         default=None,
-        metadata=json_config(field_name="pmodemo"),
+        metadata=json_config(
+            field_name="pmodemo",
+            decoder=lambda value: (
+                value if value is not False else next(iter(PARAMETER_OPERATION_MODES))
+            ),
+        ),
     )
     mode_individual_tuesday: int | None = field(
         default=None,
-        metadata=json_config(field_name="pmodetu"),
+        metadata=json_config(
+            field_name="pmodetu",
+            decoder=lambda value: (
+                value if value is not False else next(iter(PARAMETER_OPERATION_MODES))
+            ),
+        ),
     )
     mode_individual_wednesday: int | None = field(
         default=None,
-        metadata=json_config(field_name="pmodewe"),
+        metadata=json_config(
+            field_name="pmodewe",
+            decoder=lambda value: (
+                value if value is not False else next(iter(PARAMETER_OPERATION_MODES))
+            ),
+        ),
     )
     mode_individual_thursday: int | None = field(
         default=None,
-        metadata=json_config(field_name="pmodeth"),
+        metadata=json_config(
+            field_name="pmodeth",
+            decoder=lambda value: (
+                value if value is not False else next(iter(PARAMETER_OPERATION_MODES))
+            ),
+        ),
     )
     mode_individual_friday: int | None = field(
         default=None,
-        metadata=json_config(field_name="pmodefr"),
+        metadata=json_config(
+            field_name="pmodefr",
+            decoder=lambda value: (
+                value if value is not False else next(iter(PARAMETER_OPERATION_MODES))
+            ),
+        ),
     )
     mode_individual_saturday: int | None = field(
         default=None,
-        metadata=json_config(field_name="pmodesa"),
+        metadata=json_config(
+            field_name="pmodesa",
+            decoder=lambda value: (
+                value if value is not False else next(iter(PARAMETER_OPERATION_MODES))
+            ),
+        ),
     )
     mode_individual_sunday: int | None = field(
         default=None,
-        metadata=json_config(field_name="pmodesu"),
+        metadata=json_config(
+            field_name="pmodesu",
+            decoder=lambda value: (
+                value if value is not False else next(iter(PARAMETER_OPERATION_MODES))
+            ),
+        ),
     )
 
     # Regeneration mode
     regeneration_mode: int | None = field(
         default=None,
-        metadata=json_config(field_name="pregmode"),
+        metadata=json_config(
+            field_name="pregmode",
+            decoder=lambda value: (
+                value
+                if value is not False
+                else next(iter(PARAMETER_REGENERATION_MODES))
+            ),
+        ),
     )
 
     regeneration_time_monday_1: datetime.time | None = field(
@@ -594,7 +651,12 @@ class DeviceParameters:
     # Illuminated LED ring mode
     led_ring_mode: int | None = field(
         default=None,
-        metadata=json_config(field_name="pled"),
+        metadata=json_config(
+            field_name="pled",
+            decoder=lambda value: (
+                value if value is not False else next(iter(PARAMETER_LED_MODES))
+            ),
+        ),
     )
     # Illuminated LED ring flashes for pre-alarm salt supply
     led_ring_flash_on_signal: bool | None = field(
@@ -779,7 +841,12 @@ class DeviceParameters:
     # Current language
     language: int | None = field(
         default=None,
-        metadata=json_config(field_name="planguage"),
+        metadata=json_config(
+            field_name="planguage",
+            decoder=lambda value: (
+                value if value is not False else next(iter(PARAMETER_LANGUAGES))
+            ),
+        ),
     )
 
     # Programmable output function

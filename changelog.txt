@@ -1,3 +1,8 @@
+Version 1.2.0 (2025-06-03)
+ - Removed support for Python 3.11
+ - Added support for Python 3.13
+ - Set default value for "selectable" parameters which have the value "false"
+
 Version 1.1.1 (2025-02-13)
 - Fixes for SE Series
 - Updated Grünbeck API Schema changes

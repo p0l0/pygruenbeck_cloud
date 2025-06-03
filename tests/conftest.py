@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 import os.path
 
 from multidict import CIMultiDict
@@ -272,6 +273,50 @@ class FakeApi:
             ]
         )
 
+    def get_device_infos_parameters_response(self) -> str:
+        """Fixture for get_device_infos_parameters response."""
+        with open(
+            f"{DIR_NAME}/responses/get_device_infos_parameters.txt", encoding="utf-8"
+        ) as file:
+            data = file.read()
+
+        return data
+
+    def get_device_infos_parameters_response_headers(self) -> CIMultiDict:
+        """Fixture for get_device_infos_parameters headers."""
+        return CIMultiDict(
+            [
+                ("Content-Type", "application/json; charset=utf-8"),
+                ("Strict-Transport-Security", "max-age=31536000; includeSubDomains"),
+                (
+                    "Request-Context",
+                    "appId=cid-v1:9bf1e130-ec63-42ac-b6a7-7ce1131e9176",
+                ),
+            ]
+        )
+
+    def get_device_infos_parameters_se_response(self) -> str:
+        """Fixture for get_device_infos_parameters response."""
+        with open(
+            f"{DIR_NAME}/responses/get_device_infos_parameters_SE.txt", encoding="utf-8"
+        ) as file:
+            data = file.read()
+
+        return data
+
+    def get_device_infos_parameters_se_response_headers(self) -> CIMultiDict:
+        """Fixture for get_device_infos_parameters headers."""
+        return CIMultiDict(
+            [
+                ("Content-Type", "application/json; charset=utf-8"),
+                ("Strict-Transport-Security", "max-age=31536000; includeSubDomains"),
+                (
+                    "Request-Context",
+                    "appId=cid-v1:9bf1e130-ec63-42ac-b6a7-7ce1131e9176",
+                ),
+            ]
+        )
+
     def fake_device(self, series: str = "SD") -> Device:
         """Fixture returning fake Device object."""
         devices = {
@@ -353,3 +398,16 @@ def get_ws_connection_id_response_headers() -> CIMultiDict:
             ("Strict-Transport-Security", "max-age=15724800; includeSubDomains"),
         ]
     )
+
+
+def assert_response(
+    response_value, response_json, field_name, error_msg, default_value=None
+) -> None:
+    """Assert if response was parsed correctly."""
+    response_object = json.loads(response_json)
+    if field_name not in response_object:
+        assert response_value is None, error_msg
+    elif response_object[field_name] is False and default_value is not None:
+        assert response_value == default_value, error_msg
+    else:
+        assert response_value == response_object[field_name], error_msg

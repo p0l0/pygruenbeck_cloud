@@ -320,6 +320,43 @@ async def test_set_device(
 
     result = await gruenbeck.set_device_from_id(fake_device.id)
     assert result is True, "Unable to set device by ID"
+    assert gruenbeck.device.is_softliq_se() is False, "Device should not be softliq SE"
+    device = gruenbeck.device.to_dict()
+
+    assert_response(
+        device["nextRegeneration"],
+        fake_response,
+        "nextRegeneration",
+        "Incorrect next generation value",
+    )
+
+    assert_response(
+        device["startup"],
+        fake_response,
+        "startup",
+        "Incorrect startup value",
+    )
+
+    assert_response(
+        device["hardwareVersion"],
+        fake_response,
+        "hardwareVersion",
+        "Incorrect hardware version value",
+    )
+
+    assert_response(
+        device["mode"],
+        fake_response,
+        "mode",
+        "Incorrect mode value",
+    )
+
+    assert_response(
+        device["softwareVersion"],
+        fake_response,
+        "softwareVersion",
+        "Incorrect software version value",
+    )
 
 
 @patch("pygruenbeck_cloud.const.WEB_REQUESTS")
@@ -413,6 +450,43 @@ async def test_get_device_se(
     await gruenbeck.get_devices()
     result = await gruenbeck.set_device_from_id(fake_device.id)
     assert result is True, "Unable to set device by ID"
+    assert gruenbeck.device.is_softliq_se() is True, "Device should not be softliq SE"
+    device = gruenbeck.device.to_dict()
+
+    assert_response(
+        device["regMo1"],
+        fake_response,
+        "regMo1",
+        "Incorrect next generation value",
+    )
+
+    assert_response(
+        device["startUp"],
+        fake_response,
+        "startUp",
+        "Incorrect startup value",
+    )
+
+    assert_response(
+        device["hwVersionCl"],
+        fake_response,
+        "hwVersionCl",
+        "Incorrect hardware version value",
+    )
+
+    assert_response(
+        device["regMode"],
+        fake_response,
+        "regMode",
+        "Incorrect mode value",
+    )
+
+    assert_response(
+        device["swVersion"],
+        fake_response,
+        "swVersion",
+        "Incorrect software version value",
+    )
 
 
 @patch("pygruenbeck_cloud.const.WEB_REQUESTS")

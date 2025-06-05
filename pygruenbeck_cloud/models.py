@@ -12,6 +12,7 @@ from pygruenbeck_cloud.const import (
     API_WS_RESPONSE_TYPE_DATA,
     API_WS_RESPONSE_TYPE_DATA_TARGETS,
     API_WS_RESPONSE_TYPE_PING,
+    DEVICE_SERIES,
     LOGIN_REFRESH_TIME_BEFORE_EXPIRE,
     PARAMETER_LANGUAGES,
     PARAMETER_LED_MODES,
@@ -1096,6 +1097,8 @@ class Device:
     serial_number: str
     name: str
     register: bool
+
+    # Next Regeneration
     _next_regeneration_raw: datetime.datetime | None = field(
         default=None,
         metadata=json_config(
@@ -1108,17 +1111,24 @@ class Device:
             ),
         ),
     )
-    time_zone: datetime.tzinfo | None = field(
+    _next_regeneration_raw_se: datetime.datetime | None = field(
         default=None,
         metadata=json_config(
-            encoder=lambda value: value,
-            decoder=lambda value: datetime.datetime.strptime(value, "%z").tzinfo,
+            field_name="regMo1",
+            encoder=lambda value: (
+                value.strftime("%Y-%m-%dT%H:%M:%S") if value is not None else None
+            ),
+            decoder=lambda value: datetime.datetime.strptime(
+                value, "%Y-%m-%dT%H:%M:%S"
+            ),
         ),
     )
+
     # Start-up date
-    startup: datetime.date | None = field(
+    _startup_raw: datetime.date | None = field(
         default=None,
         metadata=json_config(
+            field_name="startup",
             encoder=lambda value: (
                 value.strftime("%Y-%m-%d") if value is not None else None
             ),
@@ -1126,6 +1136,68 @@ class Device:
             # mm_field=mm_fields.DateTime(format="%Y-%m-%d"),
         ),
     )
+    _startup_raw_se: datetime.date | None = field(
+        default=None,
+        metadata=json_config(
+            field_name="startUp",
+            encoder=lambda value: (
+                value.strftime("%Y.%m.%d") if value is not None else None
+            ),
+            decoder=lambda value: datetime.datetime.strptime(value, "%Y.%m.%d").date(),
+            # mm_field=mm_fields.DateTime(format="%Y-%m-%d"),
+        ),
+    )
+
+    # Hardware Version
+    _hardware_version_raw: str | None = field(
+        default=None,
+        metadata=json_config(
+            field_name="hardwareVersion",
+        ),
+    )
+    _hardware_version_raw_se: str | None = field(
+        default=None,
+        metadata=json_config(
+            field_name="hwVersionCl",
+        ),
+    )
+
+    # Running mode
+    _mode_raw: int | None = field(
+        default=None,
+        metadata=json_config(
+            field_name="mode",
+        ),
+    )
+    _mode_raw_se: int | None = field(
+        default=None,
+        metadata=json_config(
+            field_name="regMode",
+        ),
+    )
+
+    # Software Version
+    _software_version_raw: str | None = field(
+        default=None,
+        metadata=json_config(
+            field_name="softwareVersion",
+        ),
+    )
+    _software_version_raw_se: str | None = field(
+        default=None,
+        metadata=json_config(
+            field_name="swVersion",
+        ),
+    )
+
+    time_zone: datetime.tzinfo | None = field(
+        default=None,
+        metadata=json_config(
+            encoder=lambda value: value,
+            decoder=lambda value: datetime.datetime.strptime(value, "%z").tzinfo,
+        ),
+    )
+
     last_service: datetime.date | None = field(
         default=None,
         metadata=json_config(
@@ -1158,12 +1230,10 @@ class Device:
             decoder=lambda value: DailyUsageEntry.schema().load(value, many=True),  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
         ),
     )
-    hardware_version: str | None = None
-    mode: int | None = None
+
     nominal_flow: float | None = None
     raw_water: float | None = None
     soft_water: float | None = None
-    software_version: str | None = None
     unit: int | None = None
 
     # Values from WebSocket
@@ -1219,10 +1289,52 @@ class Device:
 
         return self
 
+    def is_softliq_se(self) -> bool:
+        """Return if device is Softliq SE series."""
+        if DEVICE_SERIES["SOFTLIQSE"].lower() in self.series.lower():
+            return True
+
+        return False
+
     @property
     def next_regeneration(self) -> datetime.datetime | None:
         """Return next regeneration value."""
+        if self.is_softliq_se() and self._next_regeneration_raw_se is not None:
+            return self._next_regeneration_raw_se.replace(tzinfo=self.time_zone)
+
         if self._next_regeneration_raw is None:
             return None
 
         return self._next_regeneration_raw.replace(tzinfo=self.time_zone)
+
+    @property
+    def startup(self) -> datetime.date | None:
+        """Return startup date value."""
+        if self.is_softliq_se():
+            return self._startup_raw_se
+
+        return self._startup_raw
+
+    @property
+    def hardware_version(self) -> str | None:
+        """Return hardware version value."""
+        if self.is_softliq_se():
+            return self._hardware_version_raw_se
+
+        return self._hardware_version_raw
+
+    @property
+    def mode(self) -> int | None:
+        """Return mode value."""
+        if self.is_softliq_se():
+            return self._mode_raw_se
+
+        return self._mode_raw
+
+    @property
+    def software_version(self) -> str | None:
+        """Return software version value."""
+        if self.is_softliq_se():
+            return self._software_version_raw_se
+
+        return self._software_version_raw

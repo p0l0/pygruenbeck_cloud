@@ -508,3 +508,13 @@ PARAMETER_LED_MODES: dict[int, str] = {
     3: "In case of operation by user + failure",
     4: "In case of water treatment + operation by user + failure",
 }
+
+DEVICE_SERIES: dict[str, str] = {
+    "EXALIQ": "exaliQ",
+    "PURELIQ": "pureliQ",
+    "SOFTLIQSC": "softliQ.C",
+    "SOFTLIQSD": "softliQ.D",
+    "SOFTLIQSE": "softliQ.SE",
+    "SOFTLIQLB": "softliQ.LB",
+    "SPALIQ": "spaliQ",
+}

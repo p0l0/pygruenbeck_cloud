@@ -9,7 +9,7 @@ flake8-isort==6.1.2
 pydocstyle==6.3.0
 pylint==3.3.7
 pylint-strict-informational==0.1
-setuptools==78.1.1
+setuptools==80.9.0
 build==1.2.2.post1
 tox==4.26.0
 mypy==1.16.0

@@ -1249,8 +1249,17 @@ class Device:
         """Update current object from json dict."""
         return self.from_dict(self.to_dict() | data)  # type: ignore[attr-defined,no-any-return]  # noqa: E501  # pylint: disable=no-member
 
-    def update_from_response(self, data: dict[str, Any]) -> "Device":
-        """Update object with data from API response."""
+    def update_from_http_response(self, data: dict[str, Any]) -> "Device":
+        """Update current object from HTTP response."""
+        for data_field in data:
+            self.realtime = DeviceRealtimeInfo.from_dict(  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
+                self.realtime.to_dict() | data_field  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
+            )
+
+        return self
+
+    def update_from_ws_response(self, data: dict[str, Any]) -> "Device":
+        """Update object with data from WS API response."""
         # If we got PING, do nothing
         if data.get("type") == API_WS_RESPONSE_TYPE_PING:
             return self

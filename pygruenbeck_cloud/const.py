@@ -38,6 +38,7 @@ LOGIN_CODE_CHALLENGE_CHARS: Final = (
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 LOGIN_REFRESH_TIME_BEFORE_EXPIRE = timedelta(minutes=10)
+LOGIN_STEP1_SETTINGS_REGEX: Final = re.compile(r"^var SETTINGS = (.+);", re.MULTILINE)
 
 # HTTP API Details
 API_SCHEME: Final = "https"

@@ -3,7 +3,7 @@
 # flake8: noqa
 from .pygruenbeck_cloud import PyGruenbeckCloud
 
-__version__ = "1.3.0"  # pragma: no cover
+__version__ = "1.3.1"  # pragma: no cover
 
 __all__ = [
     "PyGruenbeckCloud",

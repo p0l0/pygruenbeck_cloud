@@ -12,6 +12,7 @@ import json
 from json import JSONDecodeError
 import logging
 import random
+import re
 import socket
 from types import TracebackType
 from typing import Any
@@ -46,6 +47,7 @@ from .const import (
     DIAGNOSTIC_REDACTED,
     DIAGNOSTIC_REGEX,
     LOGIN_CODE_CHALLENGE_CHARS,
+    LOGIN_STEP1_SETTINGS_REGEX,
     PARAM_NAME_ACCESS_TOKEN,
     PARAM_NAME_CODE,
     PARAM_NAME_CODE_CHALLENGE,
@@ -110,16 +112,6 @@ class PyGruenbeckCloud:
     def _placeholder_to_values_str(const: str, values: dict[str, str]) -> str:
         """Convert placeholder from str to values in dict."""
         return const.format(**values)
-
-    @staticmethod
-    def _extract_from_html_response(
-        response: str, search_str: str, sep: str = ","
-    ) -> str:
-        """Retrieve str from HTML response."""
-        start = response.index(search_str) + len(search_str) + 3
-        end = response.index(sep, start) - 1
-
-        return response[start:end]
 
     @staticmethod
     async def _get_code_challenge() -> list[str]:
@@ -251,19 +243,29 @@ class PyGruenbeckCloud:
             msg = f"Incorrect response from {url}"
             raise PyGruenbeckCloudResponseError(msg)
 
+        # Extract SETTINGS Json from HTML
+        match = LOGIN_STEP1_SETTINGS_REGEX.findall(response)
+        if len(match) != 1:
+            msg = f"Incorrect response from {url}"
+            raise PyGruenbeckCloudResponseError(msg)
+
+        # Fix JSON String
+        json_response = re.sub(
+            '"sanitizerPolicy":(.+),"hosts"',
+            r'"sanitizerPolicy":"\1","hosts"',
+            match[0],
+        )
+        try:
+            settings = json.loads(json_response)
+        except json.decoder.JSONDecodeError as ex:
+            msg = f"Incorrect response from {url}"
+            raise PyGruenbeckCloudResponseError(msg) from ex
+
         return {
-            "csrf_token": self._extract_from_html_response(
-                response=response, search_str="csrf"
-            ),
-            "transId": self._extract_from_html_response(
-                response=response, search_str="transId"
-            ),
-            "policy": self._extract_from_html_response(
-                response=response, search_str="policy"
-            ),
-            "tenant": self._extract_from_html_response(
-                response=response, search_str="tenant"
-            ),
+            "csrf_token": settings["csrf"],
+            "transId": settings["transId"],
+            "policy": settings["hosts"]["policy"],
+            "tenant": settings["hosts"]["tenant"],
         }
 
     async def _login_step2(self, auth_data: dict[str, str]) -> bool:
@@ -848,7 +850,7 @@ class PyGruenbeckCloud:
 
         url = URL.build(scheme=scheme, host=host, port=port, path=path, query=query)
         # @TODO - expected_status_codes and allow_redirects can also come from CONST!
-        await self._http_request(
+        response = await self._http_request(
             url=url,
             headers=headers,
             method=method,
@@ -859,6 +861,10 @@ class PyGruenbeckCloud:
             ],
             use_cookies=use_cookies,
         )
+
+        # Sometimes we get an emtpy string and sometimes a JSON response
+        if isinstance(response, dict):
+            self.device.update_from_http_response(data=response)
 
     async def leave_sd(self) -> None:
         """Send leave SD for WS."""
@@ -920,7 +926,8 @@ class PyGruenbeckCloud:
             expected_status_codes = [aiohttp.http.HTTPStatus.OK]
 
         if self.session is None:
-            self.session = ClientSession()
+            jar = aiohttp.CookieJar(quote_cookie=False)
+            self.session = ClientSession(cookie_jar=jar)
             self._close_session = True
 
         try:
@@ -1056,7 +1063,7 @@ class PyGruenbeckCloud:
                     response = json.loads(ws_msg.data.strip())
 
                     if response:
-                        device = self.device.update_from_response(data=response)  # type: ignore[union-attr]  # noqa: E501
+                        device = self.device.update_from_ws_response(data=response)  # type: ignore[union-attr]  # noqa: E501
                         callback(device)
                     else:
                         self.logger.debug("Skipping empty response: %s", response)

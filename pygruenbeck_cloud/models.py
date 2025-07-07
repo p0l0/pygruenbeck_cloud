@@ -48,6 +48,7 @@ class DeviceError:
 
     is_resolved: bool
     message: str
+    description: str
     type: str
     error_code: int
     date: datetime.datetime = field(

@@ -1252,10 +1252,9 @@ class Device:
 
     def update_from_http_response(self, data: dict[str, Any]) -> "Device":
         """Update current object from HTTP response."""
-        for data_field in data:
-            self.realtime = DeviceRealtimeInfo.from_dict(  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
-                self.realtime.to_dict() | data_field  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
-            )
+        self.realtime = DeviceRealtimeInfo.from_dict(  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
+            self.realtime.to_dict() | data  # type: ignore[attr-defined]  # noqa: E501  # pylint: disable=no-member
+        )
 
         return self
 

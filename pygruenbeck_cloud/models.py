@@ -53,11 +53,13 @@ class DeviceError:
     error_code: int
     date: datetime.datetime = field(
         metadata=json_config(
-            encoder=lambda value: value.strftime("%Y-%m-%dT%H:%M:%S.%f"),
+            encoder=lambda value: value.astimezone(datetime.UTC).isoformat(
+                timespec="milliseconds"
+            ),
             # Object seems to be UTC, so we need to set correct timezone
-            decoder=lambda value: datetime.datetime.strptime(
-                value, "%Y-%m-%dT%H:%M:%S.%f"
-            ).replace(tzinfo=datetime.UTC),
+            decoder=lambda value: datetime.datetime.fromisoformat(value).replace(
+                tzinfo=datetime.UTC
+            ),
         ),
     )
 

@@ -5,7 +5,12 @@ import datetime
 import logging
 from typing import Any
 
-from dataclasses_json import LetterCase, config as json_config, dataclass_json
+from dataclasses_json import (
+    LetterCase,
+    Undefined,
+    config as json_config,
+    dataclass_json,
+)
 from marshmallow import fields as mm_fields
 
 from pygruenbeck_cloud.const import (
@@ -62,7 +67,7 @@ class DeviceError:
     )
 
 
-@dataclass_json
+@dataclass_json(undefined=Undefined.EXCLUDE)
 @dataclass
 class DailyUsageEntry:
     """Object holding daily usage data."""
@@ -74,6 +79,10 @@ class DailyUsageEntry:
             decoder=lambda value: datetime.datetime.strptime(value, "%Y-%m-%d").date(),
             mm_field=mm_fields.Date(format="%Y-%m-%d"),
         ),
+    )
+    lime_retained: float | None = field(
+        default=None,
+        metadata=json_config(field_name="limeRetained"),
     )
 
 
